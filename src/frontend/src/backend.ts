@@ -97,13 +97,24 @@ export interface Video {
     category: string;
     youtubeUrl: string;
 }
+export interface ChatMessage {
+    id: bigint;
+    userMessage: string;
+    assistantResponse: string;
+    timestamp: Time;
+}
+export type Time = bigint;
 export interface backendInterface {
     addVideo(title: string, description: string, youtubeUrl: string, category: string, thumbnailUrl: string): Promise<void>;
+    clearChatHistory(): Promise<void>;
+    generateVideoFrames(_prompt: string): Promise<Array<string>>;
     getAllCategories(): Promise<Array<string>>;
     getAllVideos(): Promise<Array<Video>>;
+    getChatHistory(): Promise<Array<ChatMessage>>;
     getHighScore(gameName: string): Promise<bigint>;
     getVideosByCategory(category: string): Promise<Array<Video>>;
     saveHighScore(gameName: string, score: bigint): Promise<void>;
+    sendMessage(userMessage: string): Promise<string>;
 }
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
@@ -118,6 +129,34 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.addVideo(arg0, arg1, arg2, arg3, arg4);
+            return result;
+        }
+    }
+    async clearChatHistory(): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.clearChatHistory();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.clearChatHistory();
+            return result;
+        }
+    }
+    async generateVideoFrames(arg0: string): Promise<Array<string>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.generateVideoFrames(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.generateVideoFrames(arg0);
             return result;
         }
     }
@@ -146,6 +185,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.getAllVideos();
+            return result;
+        }
+    }
+    async getChatHistory(): Promise<Array<ChatMessage>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getChatHistory();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getChatHistory();
             return result;
         }
     }
@@ -188,6 +241,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.saveHighScore(arg0, arg1);
+            return result;
+        }
+    }
+    async sendMessage(arg0: string): Promise<string> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.sendMessage(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.sendMessage(arg0);
             return result;
         }
     }

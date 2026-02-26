@@ -10,6 +10,13 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
+export interface ChatMessage {
+  'id' : bigint,
+  'userMessage' : string,
+  'assistantResponse' : string,
+  'timestamp' : Time,
+}
+export type Time = bigint;
 export interface Video {
   'id' : bigint,
   'title' : string,
@@ -20,11 +27,15 @@ export interface Video {
 }
 export interface _SERVICE {
   'addVideo' : ActorMethod<[string, string, string, string, string], undefined>,
+  'clearChatHistory' : ActorMethod<[], undefined>,
+  'generateVideoFrames' : ActorMethod<[string], Array<string>>,
   'getAllCategories' : ActorMethod<[], Array<string>>,
   'getAllVideos' : ActorMethod<[], Array<Video>>,
+  'getChatHistory' : ActorMethod<[], Array<ChatMessage>>,
   'getHighScore' : ActorMethod<[string], bigint>,
   'getVideosByCategory' : ActorMethod<[string], Array<Video>>,
   'saveHighScore' : ActorMethod<[string, bigint], undefined>,
+  'sendMessage' : ActorMethod<[string], string>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

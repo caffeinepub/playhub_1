@@ -3,6 +3,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Toaster } from "@/components/ui/sonner";
 import VideosTab from "./pages/VideosTab";
 import GamesTab from "./pages/GamesTab";
+import AIAssistantTab from "./pages/AIAssistantTab";
+import AIVideoStudioTab from "./pages/AIVideoStudioTab";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 
@@ -45,6 +47,22 @@ export default function App() {
                   <span className="tab-icon">🎮</span>
                   <span>Games</span>
                 </TabsTrigger>
+                <TabsTrigger value="ai" className="playhub-tab-trigger">
+                  <span className="tab-icon">✨</span>
+                  <span>AI Assistant</span>
+                </TabsTrigger>
+                <TabsTrigger value="video-studio" className="playhub-tab-trigger">
+                  <span className="tab-icon">🎥</span>
+                  <span>AI Video Studio</span>
+                </TabsTrigger>
+                <button
+                  type="button"
+                  disabled
+                  className="px-4 py-2 rounded-md text-sm font-medium opacity-50 cursor-not-allowed flex items-center gap-2"
+                >
+                  <span>🔒</span>
+                  <span>Coming Soon</span>
+                </button>
               </TabsList>
             </div>
 
@@ -53,6 +71,12 @@ export default function App() {
             </TabsContent>
             <TabsContent value="games" className="mt-0">
               <GamesTab />
+            </TabsContent>
+            <TabsContent value="ai" className="mt-0">
+              <AIAssistantTab />
+            </TabsContent>
+            <TabsContent value="video-studio" className="mt-0">
+              <AIVideoStudioTab />
             </TabsContent>
           </Tabs>
         </main>

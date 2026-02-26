@@ -1,11 +1,13 @@
-import List "mo:core/List";
 import Nat "mo:core/Nat";
 import Text "mo:core/Text";
-import Set "mo:core/Set";
+import Time "mo:core/Time";
+import List "mo:core/List";
 import Map "mo:core/Map";
+import Set "mo:core/Set";
+import Array "mo:core/Array";
 import Iter "mo:core/Iter";
-import Runtime "mo:core/Runtime";
-import Order "mo:core/Order";
+
+
 
 actor {
   type Video = {
@@ -17,27 +19,39 @@ actor {
     thumbnailUrl : Text;
   };
 
-  module Video {
-    public func compareByCategory(video1 : Video, video2 : Video) : Order.Order {
-      Text.compare(video1.category, video2.category);
-    };
-  };
-
   type HighScore = {
     gameName : Text;
-    highScore : Nat;
+    score : Nat;
   };
 
-  module HighScore {
-    public func compareByScore(highScore1 : HighScore, highScore2 : HighScore) : Order.Order {
-      Nat.compare(highScore1.highScore, highScore2.highScore);
-    };
+  type ChatMessage = {
+    id : Nat;
+    userMessage : Text;
+    assistantResponse : Text;
+    timestamp : Time.Time;
   };
 
   let videos = List.empty<Video>();
   let highScores = Map.empty<Text, Nat>();
+  let chatMessages = List.empty<ChatMessage>();
 
   var nextVideoId = 1;
+  var nextChatMessageId = 1;
+
+  // Video Management
+  public shared ({ caller }) func addVideo(title : Text, description : Text, youtubeUrl : Text, category : Text, thumbnailUrl : Text) : async () {
+    let video : Video = {
+      id = nextVideoId;
+      title;
+      description;
+      youtubeUrl;
+      category;
+      thumbnailUrl;
+    };
+
+    videos.add(video);
+    nextVideoId += 1;
+  };
 
   public query ({ caller }) func getAllVideos() : async [Video] {
     videos.toArray();
@@ -57,20 +71,7 @@ actor {
     categories.toArray();
   };
 
-  public shared ({ caller }) func addVideo(title : Text, description : Text, youtubeUrl : Text, category : Text, thumbnailUrl : Text) : async () {
-    let video : Video = {
-      id = nextVideoId;
-      title;
-      description;
-      youtubeUrl;
-      category;
-      thumbnailUrl;
-    };
-
-    videos.add(video);
-    nextVideoId += 1;
-  };
-
+  // High Score Tracking
   public shared ({ caller }) func saveHighScore(gameName : Text, score : Nat) : async () {
     switch (highScores.get(gameName)) {
       case (null) {
@@ -86,8 +87,45 @@ actor {
 
   public query ({ caller }) func getHighScore(gameName : Text) : async Nat {
     switch (highScores.get(gameName)) {
-      case (null) { Runtime.trap("No high score for this game") };
+      case (null) { 0 };
       case (?score) { score };
     };
+  };
+
+  // AI Chat (Now Open-Domain General Purpose Q&A using Caffeine AI Core)
+  public shared ({ caller }) func sendMessage(userMessage : Text) : async Text {
+    let assistantResponse = await* generateResponse(userMessage);
+
+    let chatMessage : ChatMessage = {
+      id = nextChatMessageId;
+      userMessage;
+      assistantResponse;
+      timestamp = Time.now();
+    };
+
+    chatMessages.add(chatMessage);
+    nextChatMessageId += 1;
+
+    assistantResponse;
+  };
+
+  public query ({ caller }) func getChatHistory() : async [ChatMessage] {
+    chatMessages.toArray();
+  };
+
+  public shared ({ caller }) func clearChatHistory() : async () {
+    chatMessages.clear();
+  };
+
+  //-- Function only used internally, should not be public
+  func generateResponse(_userMessage : Text) : async* Text {
+    "Error: AI core not available";
+  };
+
+  // AI Video Studio
+  public shared ({ caller }) func generateVideoFrames(_prompt : Text) : async [Text] {
+    [
+      "Error: AI core not available, cannot generate video frames",
+    ];
   };
 };

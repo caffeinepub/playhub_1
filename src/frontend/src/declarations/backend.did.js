@@ -16,6 +16,13 @@ export const Video = IDL.Record({
   'category' : IDL.Text,
   'youtubeUrl' : IDL.Text,
 });
+export const Time = IDL.Int;
+export const ChatMessage = IDL.Record({
+  'id' : IDL.Nat,
+  'userMessage' : IDL.Text,
+  'assistantResponse' : IDL.Text,
+  'timestamp' : Time,
+});
 
 export const idlService = IDL.Service({
   'addVideo' : IDL.Func(
@@ -23,11 +30,15 @@ export const idlService = IDL.Service({
       [],
       [],
     ),
+  'clearChatHistory' : IDL.Func([], [], []),
+  'generateVideoFrames' : IDL.Func([IDL.Text], [IDL.Vec(IDL.Text)], []),
   'getAllCategories' : IDL.Func([], [IDL.Vec(IDL.Text)], ['query']),
   'getAllVideos' : IDL.Func([], [IDL.Vec(Video)], ['query']),
+  'getChatHistory' : IDL.Func([], [IDL.Vec(ChatMessage)], ['query']),
   'getHighScore' : IDL.Func([IDL.Text], [IDL.Nat], ['query']),
   'getVideosByCategory' : IDL.Func([IDL.Text], [IDL.Vec(Video)], ['query']),
   'saveHighScore' : IDL.Func([IDL.Text, IDL.Nat], [], []),
+  'sendMessage' : IDL.Func([IDL.Text], [IDL.Text], []),
 });
 
 export const idlInitArgs = [];
@@ -41,6 +52,13 @@ export const idlFactory = ({ IDL }) => {
     'category' : IDL.Text,
     'youtubeUrl' : IDL.Text,
   });
+  const Time = IDL.Int;
+  const ChatMessage = IDL.Record({
+    'id' : IDL.Nat,
+    'userMessage' : IDL.Text,
+    'assistantResponse' : IDL.Text,
+    'timestamp' : Time,
+  });
   
   return IDL.Service({
     'addVideo' : IDL.Func(
@@ -48,11 +66,15 @@ export const idlFactory = ({ IDL }) => {
         [],
         [],
       ),
+    'clearChatHistory' : IDL.Func([], [], []),
+    'generateVideoFrames' : IDL.Func([IDL.Text], [IDL.Vec(IDL.Text)], []),
     'getAllCategories' : IDL.Func([], [IDL.Vec(IDL.Text)], ['query']),
     'getAllVideos' : IDL.Func([], [IDL.Vec(Video)], ['query']),
+    'getChatHistory' : IDL.Func([], [IDL.Vec(ChatMessage)], ['query']),
     'getHighScore' : IDL.Func([IDL.Text], [IDL.Nat], ['query']),
     'getVideosByCategory' : IDL.Func([IDL.Text], [IDL.Vec(Video)], ['query']),
     'saveHighScore' : IDL.Func([IDL.Text, IDL.Nat], [], []),
+    'sendMessage' : IDL.Func([IDL.Text], [IDL.Text], []),
   });
 };
 
