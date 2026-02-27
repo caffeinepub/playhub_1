@@ -567,6 +567,34 @@
     line-height: 1;
   }
 
+  .daily-challenge-btn {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .daily-challenge-btn::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      135deg,
+      oklch(var(--violet) / 0.08),
+      oklch(var(--cyan) / 0.05)
+    );
+    border-radius: var(--radius);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .daily-challenge-btn:hover::before {
+    opacity: 1;
+  }
+
+  .daily-challenge-btn:hover {
+    color: oklch(var(--foreground));
+    box-shadow: 0 0 8px oklch(var(--violet) / 0.2);
+  }
+
   .game-select-card {
     position: relative;
     overflow: hidden;

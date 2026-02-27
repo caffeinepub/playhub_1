@@ -7,9 +7,11 @@ import AIAssistantTab from "./pages/AIAssistantTab";
 import AIVideoStudioTab from "./pages/AIVideoStudioTab";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
+import DailyChallenge from "./components/DailyChallenge";
 
 export default function App() {
   const [activeTab, setActiveTab] = useState("videos");
+  const [showDailyChallenge, setShowDailyChallenge] = useState(false);
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground relative overflow-x-hidden">
@@ -57,11 +59,11 @@ export default function App() {
                 </TabsTrigger>
                 <button
                   type="button"
-                  disabled
-                  className="px-4 py-2 rounded-md text-sm font-medium opacity-50 cursor-not-allowed flex items-center gap-2"
+                  onClick={() => setShowDailyChallenge(true)}
+                  className="playhub-tab-trigger flex items-center gap-2 daily-challenge-btn"
                 >
-                  <span>🔒</span>
-                  <span>Coming Soon</span>
+                  <span className="tab-icon">🏆</span>
+                  <span>Daily Challenge</span>
                 </button>
               </TabsList>
             </div>
@@ -83,6 +85,11 @@ export default function App() {
 
         <Footer />
       </div>
+
+      <DailyChallenge
+        open={showDailyChallenge}
+        onClose={() => setShowDailyChallenge(false)}
+      />
 
       <Toaster
         theme="dark"
