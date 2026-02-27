@@ -103,8 +103,14 @@ export default function CandyCrushClone() {
     <div className="flex flex-col items-center gap-4 p-2">
       <div className="flex items-center justify-between w-full px-2">
         <span className="font-display text-cyan-300 text-lg">🍬 Candy Crush</span>
-        <div className="flex gap-4">
-          <span className="font-mono text-cyan-200 text-sm">Moves: {moves}</span>
+        <div className="flex gap-4 items-center">
+          <div className={`px-3 py-1 rounded-lg font-display font-bold text-sm border ${
+            moves <= 5 ? "bg-red-500/20 border-red-500 text-red-400 animate-pulse" :
+            moves <= 10 ? "bg-amber-500/20 border-amber-500 text-amber-400" :
+            "bg-cyan-500/10 border-cyan-500/40 text-cyan-200"
+          }`}>
+            {moves} moves left
+          </div>
           <span className="font-mono text-green-300 text-sm">Score: {score}</span>
         </div>
       </div>

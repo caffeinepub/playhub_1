@@ -130,10 +130,15 @@ export default function WordleBlitz() {
       <div className="flex items-center justify-between w-full">
         <span className="font-display text-violet-300 text-lg">⚡ Wordle Blitz</span>
         {phase === "playing" && (
-          <div className="flex gap-4">
-            <span className="font-mono text-yellow-300">⏱ {timeLeft}s</span>
-            <span className="font-mono text-violet-200">Word {currentWord + 1}/3</span>
-            <span className="font-mono text-green-300">+{totalScore}</span>
+          <div className="flex gap-4 items-center">
+            <span
+              className="font-display font-bold text-2xl"
+              style={{ color: timeLeft <= 10 ? "oklch(0.65 0.23 15)" : "oklch(0.80 0.18 80)" }}
+            >
+              {timeLeft}s
+            </span>
+            <span className="font-mono text-violet-200 text-sm">Word {currentWord + 1}/3</span>
+            <span className="font-mono text-green-300 text-sm">+{totalScore}</span>
           </div>
         )}
       </div>

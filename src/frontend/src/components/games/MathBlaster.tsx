@@ -34,6 +34,8 @@ export default function MathBlaster() {
   const [phase, setPhase] = useState<"idle" | "playing" | "done">("idle");
   const [qIdx, setQIdx] = useState(0);
   const [score, setScore] = useState(0);
+  const [streak, setStreak] = useState(0);
+  const streakRef = useRef(0);
   const [timeLeft, setTimeLeft] = useState(TIME_PER_Q);
   const [question, setQuestion] = useState<Question>(() => genQuestion());
   const [selected, setSelected] = useState<number | null>(null);
@@ -79,6 +81,11 @@ export default function MathBlaster() {
       setFeedback(isCorrect ? "correct" : "wrong");
       if (isCorrect) {
         setScore((s) => s + (isBonus ? 2 : 1));
+        streakRef.current++;
+        setStreak(streakRef.current);
+      } else {
+        streakRef.current = 0;
+        setStreak(0);
       }
       advance();
     },
@@ -105,6 +112,8 @@ export default function MathBlaster() {
     setPhase("playing");
     setQIdx(0);
     setScore(0);
+    setStreak(0);
+    streakRef.current = 0;
     setQuestion(genQuestion());
     setSelected(null);
     setCorrect(null);
@@ -155,6 +164,7 @@ export default function MathBlaster() {
       {/* Progress + score */}
       <div className="flex items-center justify-between w-full text-sm">
         <span className="text-muted-foreground font-display">Q {qIdx + 1}/{TOTAL_QUESTIONS}</span>
+        {streak >= 2 && <span className="text-yellow-300 font-display font-bold">🔥 {streak} streak!</span>}
         <span className="text-cyan-300 font-display font-bold">Score: {score}</span>
       </div>
 

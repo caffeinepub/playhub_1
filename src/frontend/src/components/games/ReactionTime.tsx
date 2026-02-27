@@ -88,16 +88,26 @@ export default function ReactionTime() {
             <p className="font-display text-3xl font-bold" style={{ color: "oklch(0.90 0.18 150)" }}>CLICK NOW!</p>
           </>
         )}
-        {phase === "clicked" && (
-          <>
-            <span className="text-4xl">✅</span>
-            <p className="font-display text-3xl font-bold gradient-text">{reactionMs}ms</p>
-            {personalBest === reactionMs && attempts.length > 1 && (
-              <p className="text-yellow-400 text-sm font-display">🏆 New Personal Best!</p>
-            )}
-            <p className="text-muted-foreground text-sm mt-2">Click to try again</p>
-          </>
-        )}
+        {phase === "clicked" && reactionMs !== null && (() => {
+          const rating = reactionMs < 200
+            ? { label: "Lightning! ⚡", color: "oklch(0.72 0.21 150)" }
+            : reactionMs < 350
+            ? { label: "Fast! 🚀", color: "oklch(0.80 0.18 80)" }
+            : reactionMs < 500
+            ? { label: "Good 👍", color: "oklch(0.75 0.20 45)" }
+            : { label: "Slow 🐢", color: "oklch(0.65 0.23 15)" };
+          return (
+            <>
+              <span className="text-4xl">✅</span>
+              <p className="font-display text-3xl font-bold" style={{ color: rating.color }}>{reactionMs}ms</p>
+              <p className="font-display text-sm font-semibold" style={{ color: rating.color }}>{rating.label}</p>
+              {personalBest === reactionMs && attempts.length > 1 && (
+                <p className="text-yellow-400 text-sm font-display">🏆 New Personal Best!</p>
+              )}
+              <p className="text-muted-foreground text-sm mt-2">Click to try again</p>
+            </>
+          );
+        })()}
         {phase === "tooearly" && (
           <>
             <span className="text-4xl">🚫</span>

@@ -79,6 +79,8 @@ export default function CheckersGame() {
   const [turn, setTurn] = useState<"red" | "black">("red");
   const [winner, setWinner] = useState<string | null>(null);
   const [message, setMessage] = useState("Your turn (red)");
+  const [playerCaptures, setPlayerCaptures] = useState(0);
+  const [aiCaptures, setAiCaptures] = useState(0);
 
   const validMoves = useCallback((b: Board): [number, number, number, number][] => {
     const moves: [number, number, number, number][] = [];
@@ -110,15 +112,21 @@ export default function CheckersGame() {
       const canDo = valid.some(([fr, fc, tr, tc]) => fr === sr && fc === sc && tr === r && tc === c);
       if (canDo) {
         const newBoard = applyMove(board, sr, sc, r, c);
+        const prevBlacks = board.flat().filter(p => p?.color === "black").length;
         const reds = newBoard.flat().filter(p => p?.color === "red").length;
         const blacks = newBoard.flat().filter(p => p?.color === "black").length;
+        const playerJumped = prevBlacks - blacks;
+        if (playerJumped > 0) setPlayerCaptures(c2 => c2 + playerJumped);
         if (blacks === 0) { setBoard(newBoard); setWinner("Player (Red)"); return; }
         if (reds === 0) { setBoard(newBoard); setWinner("AI (Black)"); return; }
 
         // AI turn
         const afterAI = aiMove(newBoard);
+        const prevReds = newBoard.flat().filter(p => p?.color === "red").length;
         const redsAfter = afterAI.flat().filter(p => p?.color === "red").length;
         const blacksAfter = afterAI.flat().filter(p => p?.color === "black").length;
+        const aiJumped = prevReds - redsAfter;
+        if (aiJumped > 0) setAiCaptures(c2 => c2 + aiJumped);
         setBoard(afterAI);
         setSelected(null);
         if (redsAfter === 0) { setWinner("AI (Black)"); setMessage("AI wins!"); return; }
@@ -137,6 +145,8 @@ export default function CheckersGame() {
     setTurn("red");
     setWinner(null);
     setMessage("Your turn (red)");
+    setPlayerCaptures(0);
+    setAiCaptures(0);
   };
 
   void turn;
@@ -149,6 +159,13 @@ export default function CheckersGame() {
     <div className="flex flex-col items-center gap-4 p-2">
       <div className="flex items-center justify-between w-full px-2">
         <span className="font-display text-cyan-300 text-lg">🔴 Checkers</span>
+        <div className="flex gap-3 items-center text-xs font-mono">
+          <span className="text-red-400">You: {playerCaptures}</span>
+          <span className="text-zinc-400">|</span>
+          <span className="text-zinc-400">AI: {aiCaptures}</span>
+        </div>
+      </div>
+      <div className="text-center">
         <span className="text-sm text-muted-foreground">{winner ? `${winner} wins!` : message}</span>
       </div>
 

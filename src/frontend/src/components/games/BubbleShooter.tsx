@@ -42,11 +42,14 @@ export default function BubbleShooter() {
   const nextColorRef = useRef(COLORS[Math.floor(Math.random() * COLORS.length)]);
   const shooterColorRef = useRef(COLORS[Math.floor(Math.random() * COLORS.length)]);
   const scoreRef = useRef(0);
+  const levelRef = useRef(1);
+  const shotsRef = useRef(0);
   const rafRef = useRef(0);
   const phaseRef = useRef<"idle" | "playing" | "gameover" | "win">("idle");
 
   const [phase, setPhase] = useState<"idle" | "playing" | "gameover" | "win">("idle");
   const [score, setScore] = useState(0);
+  const [level, setLevel] = useState(1);
   const [aimX, setAimX] = useState(SHOOTER_X);
   const [aimY, setAimY] = useState(SHOOTER_Y - 80);
 
@@ -186,8 +189,15 @@ export default function BubbleShooter() {
         const [pr, pc] = key.split(",").map(Number);
         if (gridRef.current[pr]) gridRef.current[pr][pc] = null;
       });
-      scoreRef.current += toRemove.size * 10;
+      scoreRef.current += toRemove.size * 10 * levelRef.current;
       setScore(scoreRef.current);
+    }
+
+    // Level up every 10 shots
+    shotsRef.current++;
+    if (shotsRef.current % 10 === 0) {
+      levelRef.current++;
+      setLevel(levelRef.current);
     }
 
     // Check game over: any bubble in last rows
@@ -269,9 +279,12 @@ export default function BubbleShooter() {
     shooterColorRef.current = COLORS[Math.floor(Math.random() * COLORS.length)];
     nextColorRef.current = COLORS[Math.floor(Math.random() * COLORS.length)];
     scoreRef.current = 0;
+    levelRef.current = 1;
+    shotsRef.current = 0;
     phaseRef.current = "playing";
     setPhase("playing");
     setScore(0);
+    setLevel(1);
     rafRef.current = requestAnimationFrame(tick);
   }, [tick]);
 
@@ -295,9 +308,15 @@ export default function BubbleShooter() {
 
   return (
     <div className="flex flex-col items-center gap-4">
-      <div className="score-chip">
-        <span className="score-label">Score</span>
-        <span className="score-value">{score}</span>
+      <div className="flex gap-3">
+        <div className="score-chip">
+          <span className="score-label">Score</span>
+          <span className="score-value">{score}</span>
+        </div>
+        <div className="score-chip">
+          <span className="score-label">Level</span>
+          <span className="score-value">{level}</span>
+        </div>
       </div>
 
       <div className="game-canvas-wrap" style={{ width: W, height: H }}>

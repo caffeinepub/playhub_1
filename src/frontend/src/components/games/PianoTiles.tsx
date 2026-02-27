@@ -14,12 +14,14 @@ export default function PianoTiles() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [gameState, setGameState] = useState<"idle" | "playing" | "dead">("idle");
   const [score, setScore] = useState(0);
+  const [streak, setStreak] = useState(0);
   const runningRef = useRef(false);
   const animIdRef = useRef(0);
   const stateRef = useRef({
     tiles: [] as Tile[],
     score: 0,
     misses: 0,
+    streak: 0,
     frame: 0,
     speed: 3,
     lastCol: -1,
@@ -34,7 +36,9 @@ export default function PianoTiles() {
       const tile = candidates.reduce((a, b) => (a.y > b.y ? a : b));
       tile.hit = true;
       s.score++;
+      s.streak++;
       setScore(s.score);
+      setStreak(s.streak);
     }
   }, []);
 
@@ -85,6 +89,8 @@ export default function PianoTiles() {
       if (!t.hit && t.y > BOTTOM_LINE + 10) {
         t.hit = true;
         s.misses++;
+        s.streak = 0;
+        setStreak(0);
         if (s.misses >= 3) {
           runningRef.current = false;
           setGameState("dead");
@@ -123,6 +129,12 @@ export default function PianoTiles() {
     ctx.fillText(`Score: ${s.score}`, 8, 24);
     ctx.fillStyle = "#ef4444";
     ctx.fillText(`Misses: ${s.misses}/3`, 8, 48);
+    if (s.streak >= 5) {
+      ctx.fillStyle = "#fbbf24";
+      ctx.font = "bold 14px monospace";
+      ctx.textAlign = "right";
+      ctx.fillText(`🔥 Streak: ${s.streak}`, W - 8, 24);
+    }
 
     animIdRef.current = requestAnimationFrame(() => runLoop(ctx));
   }, []);
@@ -130,8 +142,9 @@ export default function PianoTiles() {
   const startGame = useCallback(() => {
     cancelAnimationFrame(animIdRef.current);
     runningRef.current = false;
-    stateRef.current = { tiles: [], score: 0, misses: 0, frame: 0, speed: 3, lastCol: -1 };
+    stateRef.current = { tiles: [], score: 0, misses: 0, streak: 0, frame: 0, speed: 3, lastCol: -1 };
     setScore(0);
+    setStreak(0);
     setGameState("playing");
     runningRef.current = true;
     const canvas = canvasRef.current;
@@ -169,7 +182,10 @@ export default function PianoTiles() {
     <div className="flex flex-col items-center gap-4">
       <div className="flex items-center justify-between w-full px-2">
         <span className="font-display text-violet-300 text-lg">🎹 Piano Tiles</span>
-        <span className="font-mono text-violet-200 text-sm">Score: {score}</span>
+        <div className="flex gap-3 text-sm font-mono">
+          {streak >= 5 && <span className="text-amber-400">🔥 {streak}</span>}
+          <span className="text-violet-200">Score: {score}</span>
+        </div>
       </div>
       <canvas
         ref={canvasRef}

@@ -42,6 +42,12 @@ export default function GeometryDash() {
     s.speed = 4 + Math.floor(s.score / 300) * 0.5;
     setScore(s.score);
 
+    // Score on canvas
+    ctx.font = "bold 20px Oxanium, monospace";
+    ctx.textAlign = "right";
+    ctx.fillStyle = "rgba(255,255,255,0.9)";
+    ctx.fillText(`Score: ${s.score}`, 590, 30);
+
     s.frame++;
     const spawnInterval = Math.max(60, 120 - Math.floor(s.score / 500) * 10);
     if (s.frame % spawnInterval === 0) {

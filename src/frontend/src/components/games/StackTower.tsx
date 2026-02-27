@@ -114,7 +114,10 @@ export default function StackTower() {
     <div className="flex flex-col items-center gap-4">
       <div className="flex items-center justify-between w-full px-2">
         <span className="font-display text-cyan-300 text-lg">🏗️ Stack Tower</span>
-        <span className="font-mono text-cyan-200 text-sm">Score: {score}</span>
+        <div className="flex gap-3 text-sm font-mono">
+          <span className="text-cyan-400">Height: {score}</span>
+          <span className="text-cyan-200">Score: {score}</span>
+        </div>
       </div>
       <canvas
         ref={canvasRef}

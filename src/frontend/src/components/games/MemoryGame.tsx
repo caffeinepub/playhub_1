@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useSaveHighScore, useGetHighScore } from "../../hooks/useQueries";
 import { toast } from "sonner";
 
@@ -18,6 +18,8 @@ function createDeck(): MemoryCard[] {
     .map((emoji, id) => ({ id, emoji, isFlipped: false, isMatched: false }));
 }
 
+const TIMER_SECONDS = 60;
+
 export default function MemoryGame() {
   const [cards, setCards] = useState<MemoryCard[]>(createDeck);
   const [flipped, setFlipped] = useState<number[]>([]);
@@ -26,6 +28,8 @@ export default function MemoryGame() {
   const [gameComplete, setGameComplete] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
   const [bestMoves, setBestMoves] = useState<number | null>(null);
+  const [timeLeft, setTimeLeft] = useState(TIMER_SECONDS);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const { data: highScore = BigInt(0) } = useGetHighScore("memory");
   const saveScore = useSaveHighScore();
@@ -34,12 +38,14 @@ export default function MemoryGame() {
   const computeScore = useCallback((m: number) => Math.max(0, 1000 - m * 10), []);
 
   const handleReset = useCallback(() => {
+    if (timerRef.current) clearInterval(timerRef.current);
     setCards(createDeck());
     setFlipped([]);
     setMoves(0);
     setIsChecking(false);
     setGameComplete(false);
     setGameStarted(false);
+    setTimeLeft(TIMER_SECONDS);
   }, []);
 
   const handleCardClick = useCallback(
@@ -47,7 +53,22 @@ export default function MemoryGame() {
       if (isChecking || gameComplete) return;
       const card = cards.find((c) => c.id === id);
       if (!card || card.isFlipped || card.isMatched) return;
-      if (!gameStarted) setGameStarted(true);
+      if (!gameStarted) {
+        setGameStarted(true);
+        // Start countdown
+        if (timerRef.current) clearInterval(timerRef.current);
+        timerRef.current = setInterval(() => {
+          setTimeLeft(prev => {
+            if (prev <= 1) {
+              if (timerRef.current) clearInterval(timerRef.current);
+              setGameComplete(true);
+              toast.error("Time's up! Game over.");
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
+      }
       if (flipped.length === 1 && flipped[0] === id) return;
 
       const newFlipped = [...flipped, id];
@@ -94,11 +115,14 @@ export default function MemoryGame() {
     [cards, flipped, isChecking, gameComplete, gameStarted],
   );
 
+  useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
+
   // Check win
   useEffect(() => {
     if (!gameStarted) return;
     const allMatched = cards.every((c) => c.isMatched);
     if (allMatched && !gameComplete) {
+      if (timerRef.current) clearInterval(timerRef.current);
       setGameComplete(true);
       const score = computeScore(moves);
       const prevBest = Number(highScore);
@@ -118,17 +142,32 @@ export default function MemoryGame() {
   return (
     <div className="flex flex-col items-center gap-5">
       {/* Stats row */}
-      <div className="flex gap-6 text-center">
+      <div className="flex gap-4 text-center items-center">
         <div className="score-chip">
           <span className="score-label">Moves</span>
           <span className="score-value">{moves}</span>
         </div>
         <div className="score-chip">
-          <span className="score-label">Best</span>
-          <span className="score-value gradient-text">
-            {hsDisplay !== null ? `${hsDisplay} moves` : "—"}
+          <span className="score-label">Time</span>
+          <span className="score-value" style={{ color: timeLeft <= 10 ? "oklch(0.65 0.23 15)" : undefined }}>
+            {timeLeft}s
           </span>
         </div>
+        <div className="score-chip">
+          <span className="score-label">Best</span>
+          <span className="score-value gradient-text">
+            {hsDisplay !== null ? `${hsDisplay}mv` : "—"}
+          </span>
+        </div>
+        {gameStarted && !gameComplete && (
+          <button
+            type="button"
+            onClick={handleReset}
+            className="px-3 py-1.5 rounded-lg text-xs font-display tracking-wide border border-violet/30 text-violet-300 hover:bg-violet/10 transition-colors"
+          >
+            Reset
+          </button>
+        )}
       </div>
 
       {/* Board */}

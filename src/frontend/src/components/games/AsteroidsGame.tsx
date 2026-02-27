@@ -1,4 +1,5 @@
 import { useEffect, useRef, useCallback, useState } from "react";
+import { toast } from "sonner";
 
 const W = 500, H = 500;
 const SHIP_SIZE = 14;
@@ -12,6 +13,7 @@ const SHOOT_COOLDOWN = 200;
 interface Vec2 { x: number; y: number; }
 interface Asteroid { pos: Vec2; vel: Vec2; radius: number; angle: number; spin: number; verts: Vec2[]; }
 interface Bullet { pos: Vec2; vel: Vec2; age: number; }
+interface Shield { pos: Vec2; active: boolean; }
 
 function randVerts(r: number): Vec2[] {
   const n = 8 + Math.floor(Math.random() * 4);
@@ -55,6 +57,7 @@ export default function AsteroidsGame() {
   const angleRef = useRef(0);
   const bulletsRef = useRef<Bullet[]>([]);
   const asteroidsRef = useRef<Asteroid[]>([]);
+  const shieldsRef = useRef<Shield[]>([]);
   const livesRef = useRef(3);
   const scoreRef = useRef(0);
   const levelRef = useRef(1);
@@ -133,6 +136,25 @@ export default function AsteroidsGame() {
       ctx.fill();
     });
     ctx.shadowBlur = 0;
+
+    // Shield power-ups
+    shieldsRef.current.filter(s => s.active).forEach(s => {
+      ctx.beginPath();
+      ctx.arc(s.pos.x, s.pos.y, 12, 0, Math.PI * 2);
+      ctx.fillStyle = "oklch(0.72 0.22 250 / 0.3)";
+      ctx.fill();
+      ctx.strokeStyle = "oklch(0.72 0.22 250)";
+      ctx.lineWidth = 2;
+      ctx.shadowBlur = 12;
+      ctx.shadowColor = "oklch(0.72 0.22 250)";
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      ctx.font = "12px serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillStyle = "oklch(0.90 0.15 250)";
+      ctx.fillText("🛡", s.pos.x, s.pos.y);
+    });
 
     // Asteroids
     asteroidsRef.current.forEach(ast => {
@@ -245,6 +267,23 @@ export default function AsteroidsGame() {
       }
     });
 
+    // Spawn shield occasionally
+    if (Math.random() < 0.001 && shieldsRef.current.filter(s => s.active).length < 2) {
+      shieldsRef.current.push({ pos: { x: Math.random() * (W - 40) + 20, y: Math.random() * (H - 40) + 20 }, active: true });
+    }
+
+    // Shield pickup
+    shieldsRef.current.forEach(s => {
+      if (!s.active) return;
+      const dist = Math.hypot(posRef.current.x - s.pos.x, posRef.current.y - s.pos.y);
+      if (dist < 20) {
+        s.active = false;
+        livesRef.current = Math.min(livesRef.current + 1, 5);
+        setLives(livesRef.current);
+        toast.success("+1 Life! 🛡");
+      }
+    });
+
     // Level complete
     if (asteroidsRef.current.length === 0) {
       levelRef.current++;
@@ -263,6 +302,7 @@ export default function AsteroidsGame() {
     scoreRef.current = 0;
     levelRef.current = 1;
     asteroidsRef.current = makeAsteroids(4, { x: W / 2, y: H / 2 });
+    shieldsRef.current = [];
     phaseRef.current = "playing";
     setPhase("playing");
     setScore(0);

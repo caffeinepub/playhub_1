@@ -25,6 +25,7 @@ export default function TypeRacer() {
   const [phase, setPhase] = useState<Phase>("idle");
   const [startTime, setStartTime] = useState(0);
   const [wpm, setWpm] = useState(0);
+  const [liveWpm, setLiveWpm] = useState(0);
   const [accuracy, setAccuracy] = useState(100);
   const inputRef = useRef<HTMLInputElement>(null);
   const totalCharsTypedRef = useRef(0);
@@ -54,6 +55,15 @@ export default function TypeRacer() {
     }
 
     setInput(val);
+
+    // Live WPM calculation
+    if (val.length > 0) {
+      const elapsed = (Date.now() - startTime) / 60000;
+      if (elapsed > 0) {
+        const wordsTyped = val.length / 5;
+        setLiveWpm(Math.round(wordsTyped / elapsed));
+      }
+    }
 
     if (val === sentence) {
       const elapsed = (Date.now() - startTime) / 60000; // minutes
@@ -89,7 +99,9 @@ export default function TypeRacer() {
       <div className="flex gap-6">
         <div className="score-chip">
           <span className="score-label">WPM</span>
-          <span className="score-value gradient-text">{phase === "done" ? wpm : "—"}</span>
+          <span className="score-value gradient-text">
+            {phase === "done" ? wpm : phase === "typing" ? liveWpm : "—"}
+          </span>
         </div>
         <div className="score-chip">
           <span className="score-label">Accuracy</span>

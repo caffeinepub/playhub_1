@@ -14,6 +14,7 @@ export default function NumberCruncher() {
   );
   const [falling, setFalling] = useState<{ col: number; value: number } | null>(null);
   const [score, setScore] = useState(0);
+  const [merges, setMerges] = useState(0);
   const [phase, setPhase] = useState<"idle" | "playing" | "done">("idle");
   const fallingRef = useRef(falling);
   const gridRef = useRef(grid);
@@ -44,12 +45,14 @@ export default function NumberCruncher() {
     // Merge same values in column
     let merged = true;
     let gained = 0;
+    let mergeCount = 0;
     while (merged) {
       merged = false;
       for (let r = ROWS - 1; r > 0; r--) {
         if (newGrid[r][col] && newGrid[r - 1][col] && newGrid[r][col]!.value === newGrid[r - 1][col]!.value) {
           const newVal = newGrid[r][col]!.value * 2;
           gained += newVal;
+          mergeCount++;
           // Remove both, add merged below
           newGrid[r][col] = { value: newVal };
           newGrid[r - 1][col] = null;
@@ -66,6 +69,7 @@ export default function NumberCruncher() {
     }
 
     if (gained > 0) setScore(s => s + gained);
+    if (mergeCount > 0) setMerges(m => m + mergeCount);
 
     // Check game over: top row occupied
     const topFull = newGrid[0].some(c => c !== null);
@@ -83,6 +87,7 @@ export default function NumberCruncher() {
   const startGame = useCallback(() => {
     setGrid(Array.from({ length: ROWS }, () => Array(COLS).fill(null)));
     setScore(0);
+    setMerges(0);
     setPhase("playing");
     setFalling({ col: Math.floor(Math.random() * COLS), value: randValue() });
   }, []);
@@ -113,7 +118,10 @@ export default function NumberCruncher() {
     <div className="flex flex-col items-center gap-4 p-2">
       <div className="flex items-center justify-between w-full px-2">
         <span className="font-display text-violet-300 text-lg">🔢 Number Cruncher</span>
-        <span className="font-mono text-violet-200 text-sm">Score: {score}</span>
+        <div className="flex gap-3">
+          <span className="font-mono text-violet-200 text-sm">Merges: {merges}</span>
+          <span className="font-mono text-violet-200 text-sm">Score: {score}</span>
+        </div>
       </div>
 
       {/* Column buttons + grid */}

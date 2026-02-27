@@ -1,14 +1,27 @@
 import { useCallback, useState } from "react";
 
-const WORDS = [
-  "JAVASCRIPT", "PYTHON", "DRAGON", "CASTLE", "WIZARD", "GALAXY", "PUZZLE", "MIRROR",
-  "THUNDER", "CRYSTAL", "PHOENIX", "JUNGLE", "ROCKET", "PLANET", "FOSSIL", "HAMMER",
-  "BRIDGE", "FOREST", "ISLAND", "LANTERN", "MAGNET", "KNIGHT", "BEACON", "CANVAS",
-  "DOLPHIN", "FLOWER", "GOBLIN", "HELMET", "ICEBERG", "JAGUAR", "KETTLE", "LOCKET",
-  "MUFFIN", "NOODLE", "OYSTER", "PARROT", "QUARTZ", "RABBIT", "SADDLE", "THRONE",
-  "UMBRELLA", "VIOLIN", "WALNUT", "XEROX", "YELLOW", "ZIPPER", "ANCHOR", "BARREL",
-  "CHEETAH", "PENDANT",
-];
+type Category = "Animals" | "Countries" | "Movies" | "Tech" | "All";
+
+const WORD_BANKS: Record<Exclude<Category, "All">, string[]> = {
+  Animals: [
+    "DOLPHIN", "CHEETAH", "ELEPHANT", "GIRAFFE", "PENGUIN", "JAGUAR", "PARROT",
+    "GORILLA", "FLAMINGO", "CROCODILE", "HEDGEHOG", "KANGAROO", "PLATYPUS", "WOLVERINE",
+  ],
+  Countries: [
+    "BRAZIL", "FRANCE", "GERMANY", "ICELAND", "JORDAN", "KENYA", "MEXICO",
+    "NORWAY", "POLAND", "SWEDEN", "TURKEY", "UKRAINE", "VIETNAM", "ZAMBIA",
+  ],
+  Movies: [
+    "AVATAR", "JAWS", "ALIEN", "GREASE", "ROCKY", "SHREK", "FROZEN",
+    "INCEPTION", "INTERSTELLAR", "GLADIATOR", "BRAVEHEART", "CASABLANCA",
+  ],
+  Tech: [
+    "JAVASCRIPT", "PYTHON", "DOCKER", "GITHUB", "KERNEL", "BROWSER", "NETWORK",
+    "ALGORITHM", "DATABASE", "COMPILER", "TYPESCRIPT", "FRAMEWORK", "TERMINAL",
+  ],
+};
+
+const ALL_WORDS = Object.values(WORD_BANKS).flat();
 
 const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
@@ -44,13 +57,18 @@ function HangmanSVG({ wrong }: { wrong: number }) {
   );
 }
 
+function pickWord(cat: Category): string {
+  const pool = cat === "All" ? ALL_WORDS : WORD_BANKS[cat];
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
 export default function HangmanGame() {
-  const [word, setWord] = useState(() => WORDS[Math.floor(Math.random() * WORDS.length)]);
+  const [category, setCategory] = useState<Category>("All");
+  const [word, setWord] = useState(() => pickWord("All"));
   const [guessed, setGuessed] = useState<Set<string>>(new Set());
   const [phase, setPhase] = useState<"playing" | "won" | "lost">("playing");
 
   const wrong = [...guessed].filter(l => !word.includes(l)).length;
-  const revealed = word.split("").every(l => guessed.has(l));
 
   const guess = useCallback((letter: string) => {
     if (phase !== "playing" || guessed.has(letter)) return;
@@ -61,19 +79,41 @@ export default function HangmanGame() {
     if (word.split("").every(l => next.has(l))) { setPhase("won"); }
   }, [guessed, word, phase]);
 
-  const reset = () => {
-    setWord(WORDS[Math.floor(Math.random() * WORDS.length)]);
+  const reset = (cat?: Category) => {
+    const c = cat ?? category;
+    setWord(pickWord(c));
     setGuessed(new Set());
     setPhase("playing");
   };
 
-  void revealed;
+  const changeCategory = (cat: Category) => {
+    setCategory(cat);
+    reset(cat);
+  };
 
   return (
     <div className="flex flex-col items-center gap-4 p-2">
       <div className="flex items-center justify-between w-full px-2">
         <span className="font-display text-violet-300 text-lg">🪢 Hangman</span>
         <span className="text-sm text-muted-foreground">Wrong: {wrong}/7</span>
+      </div>
+
+      {/* Category selector */}
+      <div className="flex gap-1.5 flex-wrap justify-center">
+        {(["All", "Animals", "Countries", "Movies", "Tech"] as Category[]).map(cat => (
+          <button
+            key={cat}
+            type="button"
+            onClick={() => changeCategory(cat)}
+            className={`px-3 py-1 rounded-full text-xs font-display transition-colors ${
+              category === cat
+                ? "bg-violet-600 text-white"
+                : "bg-zinc-800 text-muted-foreground hover:bg-violet-700/40 hover:text-foreground"
+            }`}
+          >
+            {cat}
+          </button>
+        ))}
       </div>
 
       <HangmanSVG wrong={wrong} />
@@ -115,7 +155,7 @@ export default function HangmanGame() {
       </div>
 
       {phase !== "playing" && (
-        <button type="button" onClick={reset} className="px-6 py-2 bg-violet-600 hover:bg-violet-500 text-white rounded-lg font-display transition-colors">
+        <button type="button" onClick={() => reset()} className="px-6 py-2 bg-violet-600 hover:bg-violet-500 text-white rounded-lg font-display transition-colors">
           New Game
         </button>
       )}

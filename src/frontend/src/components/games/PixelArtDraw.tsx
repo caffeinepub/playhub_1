@@ -38,7 +38,9 @@ export default function PixelArtDraw() {
   };
 
   const clearGrid = () => {
-    setGrid(Array.from({ length: GRID }, () => Array(GRID).fill("#1a1a2e")));
+    if (window.confirm("Clear the canvas? This cannot be undone.")) {
+      setGrid(Array.from({ length: GRID }, () => Array(GRID).fill("#1a1a2e")));
+    }
   };
 
   const fillGrid = () => {

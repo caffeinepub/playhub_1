@@ -126,6 +126,7 @@ export default function ChessGame() {
   const [turn, setTurn] = useState<Color>("w");
   const [status, setStatus] = useState<string>("Your turn (White)");
   const [phase, setPhase] = useState<"playing" | "over">("playing");
+  const [moveCount, setMoveCount] = useState(0);
 
   const handleSquareClick = useCallback((r: number, c: number) => {
     if (phase !== "playing" || turn !== "w") return;
@@ -139,6 +140,7 @@ export default function ChessGame() {
         let next = applyMove(board, sr, sc, r, c);
         setSelected(null);
         setHighlights([]);
+        setMoveCount(m => m + 1);
 
         // AI move
         setTimeout(() => {
@@ -187,14 +189,16 @@ export default function ChessGame() {
     setTurn("w");
     setStatus("Your turn (White)");
     setPhase("playing");
+    setMoveCount(0);
   };
 
   return (
     <div className="flex flex-col items-center gap-4 p-4">
-      <div className="text-center">
+      <div className="flex items-center justify-between w-full px-2">
         <p className={`font-display text-sm font-semibold ${status.includes("Check") && !status.includes("Checkmate") ? "text-yellow-300" : status.includes("wins") ? "text-destructive" : "text-muted-foreground"}`}>
           {status}
         </p>
+        <span className="text-xs text-muted-foreground font-mono">Moves: {moveCount}</span>
       </div>
 
       {/* Board */}

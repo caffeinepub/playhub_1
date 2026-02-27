@@ -155,9 +155,11 @@ export default function ConnectFour() {
       >
         {/* Column buttons */}
         <div className="flex mb-2">
-          {Array.from({ length: COLS }, (_, c) => (
+          {Array.from({ length: COLS }, (_, c) => {
+            const colBtnKey = `cf-col-btn-${c}`;
+            return (
             <button
-              key={`col-btn-${c}`}
+              key={colBtnKey}
               type="button"
               className="flex-1 flex justify-center items-center h-6 transition-opacity"
               onClick={() => dropDisc(c)}
@@ -174,40 +176,46 @@ export default function ConnectFour() {
                 </span>
               )}
             </button>
-          ))}
+            );
+          })}
         </div>
 
         {/* Grid */}
-        {board.map((row, r) => (
-          <div key={`row-${r}`} className="flex gap-1.5 mb-1.5">
+        {board.map((row, r) => {
+          const rowKey = `cf-row-${r}`;
+          return (
+          <div key={rowKey} className="flex gap-1.5 mb-1.5">
             {row.map((cell, c) => {
               const isWin = isWinCell(r, c);
+              const cellKey = `cf-cell-r${r}-c${c}`;
               return (
                 <div
-                  key={`cell-${r}-${c}`}
-                  className="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200"
+                  key={cellKey}
+                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 ${isWin ? "animate-pulse" : ""}`}
                   style={{
                     background:
                       cell === EMPTY
                         ? "oklch(0.10 0.015 270)"
                         : cell === P1
                         ? isWin
-                          ? "oklch(0.72 0.25 290)"
+                          ? "oklch(0.82 0.28 290)"
                           : "oklch(0.55 0.20 290)"
                         : isWin
-                        ? "oklch(0.82 0.22 195)"
+                        ? "oklch(0.92 0.25 195)"
                         : "oklch(0.65 0.19 195)",
                     boxShadow:
                       cell !== EMPTY && isWin
-                        ? `0 0 14px ${cell === P1 ? "oklch(0.72 0.25 290 / 0.8)" : "oklch(0.82 0.22 195 / 0.8)"}`
+                        ? `0 0 20px ${cell === P1 ? "oklch(0.72 0.25 290 / 0.9)" : "oklch(0.82 0.22 195 / 0.9)"}`
                         : "none",
-                    transform: isWin ? "scale(1.1)" : "scale(1)",
+                    transform: isWin ? "scale(1.15)" : "scale(1)",
+                    outline: isWin ? `3px solid ${cell === P1 ? "oklch(0.82 0.28 290)" : "oklch(0.92 0.25 195)"}` : "none",
                   }}
                 />
               );
             })}
           </div>
-        ))}
+          );
+        })}
       </div>
 
       {(winner !== EMPTY || isDraw) && (

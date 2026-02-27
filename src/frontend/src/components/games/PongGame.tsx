@@ -45,6 +45,8 @@ export default function PongGame() {
   const [scores, setScores] = useState({ s1: 0, s2: 0 });
   const [phase, setPhase] = useState<"idle" | "playing" | "won">("idle");
   const [winner, setWinner] = useState("");
+  const [rally, setRally] = useState(0);
+  const rallyRef = useRef(0);
 
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
@@ -138,6 +140,8 @@ export default function PongGame() {
       s.bvx = Math.abs(s.bvx) + 0.1;
       s.bvy = relY * speed * 1.2;
       s.bx = 16 + PADDLE_W + BALL_SIZE / 2;
+      rallyRef.current++;
+      setRally(rallyRef.current);
     }
 
     // Paddle collision P2
@@ -153,12 +157,15 @@ export default function PongGame() {
       s.bvx = -(Math.abs(s.bvx) + 0.1);
       s.bvy = relY * speed * 1.2;
       s.bx = p2x - BALL_SIZE / 2;
+      rallyRef.current++;
+      setRally(rallyRef.current);
     }
 
     // Score
     if (s.bx < 0) {
       s.s2++;
       setScores({ s1: s.s1, s2: s.s2 });
+      rallyRef.current = 0; setRally(0);
       if (s.s2 >= WIN_SCORE) {
         s.phase = "won"; s.winner = "Player 2";
         setPhase("won"); setWinner("Player 2");
@@ -167,6 +174,7 @@ export default function PongGame() {
     if (s.bx > W) {
       s.s1++;
       setScores({ s1: s.s1, s2: s.s2 });
+      rallyRef.current = 0; setRally(0);
       if (s.s1 >= WIN_SCORE) {
         s.phase = "won"; s.winner = "Player 1";
         setPhase("won"); setWinner("Player 1");
@@ -184,6 +192,8 @@ export default function PongGame() {
     setScores({ s1: 0, s2: 0 });
     setPhase("playing");
     setWinner("");
+    rallyRef.current = 0;
+    setRally(0);
     rafRef.current = requestAnimationFrame(tick);
   }, [tick]);
 
@@ -209,8 +219,12 @@ export default function PongGame() {
   return (
     <div className="flex flex-col items-center gap-4">
       {/* Labels */}
-      <div className="flex w-full max-w-[600px] justify-between text-xs font-display tracking-widest uppercase">
+      <div className="flex w-full max-w-[600px] justify-between items-center text-xs font-display tracking-widest uppercase">
         <span className="text-violet-300">P1 — W/S</span>
+        <div className="score-chip">
+          <span className="score-label">Rally</span>
+          <span className="score-value gradient-text">{rally}</span>
+        </div>
         <span className="text-cyan-300">P2 — ↑/↓</span>
       </div>
 

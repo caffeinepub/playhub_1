@@ -15,6 +15,8 @@ type GameState = {
   frame: number;
   slashPoints: { x: number; y: number }[];
   mouseDown: boolean;
+  combo: number;
+  lastSliceFrame: number;
 };
 
 export default function FruitNinja() {
@@ -22,6 +24,7 @@ export default function FruitNinja() {
   const [gameState, setGameState] = useState<"idle" | "playing" | "dead">("idle");
   const [score, setScore] = useState(0);
   const [lives, setLives] = useState(3);
+  const [combo, setCombo] = useState(0);
   const runningRef = useRef(false);
   const animIdRef = useRef(0);
   const gsRef = useRef<GameState>({
@@ -31,6 +34,8 @@ export default function FruitNinja() {
     frame: 0,
     slashPoints: [],
     mouseDown: false,
+    combo: 0,
+    lastSliceFrame: 0,
   });
 
   const runLoop = useCallback((ctx: CanvasRenderingContext2D) => {
@@ -98,11 +103,24 @@ export default function FruitNinja() {
     }
     if (s.slashPoints.length > 20) s.slashPoints.splice(0, 5);
 
+    // Decay combo if no slice for 60 frames
+    if (s.combo > 0 && s.frame - s.lastSliceFrame > 60) {
+      s.combo = 0;
+      setCombo(0);
+    }
+
     // HUD
     ctx.fillStyle = "#fff";
     ctx.font = "bold 18px monospace";
     ctx.textAlign = "left";
     ctx.fillText(`Score: ${s.score}`, 10, 28);
+    if (s.combo >= 2) {
+      ctx.fillStyle = "#fbbf24";
+      ctx.font = "bold 16px monospace";
+      ctx.fillText(`🔥 COMBO x${s.combo}`, 10, 52);
+    }
+    ctx.fillStyle = "#fff";
+    ctx.font = "bold 18px monospace";
     for (let i = 0; i < s.lives; i++) {
       ctx.fillText("♥", W - 30 - i * 22, 28);
     }
@@ -113,9 +131,10 @@ export default function FruitNinja() {
   const startGame = useCallback(() => {
     cancelAnimationFrame(animIdRef.current);
     runningRef.current = false;
-    gsRef.current = { fruits: [], score: 0, lives: 3, frame: 0, slashPoints: [], mouseDown: false };
+    gsRef.current = { fruits: [], score: 0, lives: 3, frame: 0, slashPoints: [], mouseDown: false, combo: 0, lastSliceFrame: 0 };
     setScore(0);
     setLives(3);
+    setCombo(0);
     setGameState("playing");
     runningRef.current = true;
     const canvas = canvasRef.current;
@@ -142,8 +161,11 @@ export default function FruitNinja() {
             setGameState("dead");
             return;
           }
-          s.score++;
+          s.combo++;
+          s.lastSliceFrame = s.frame;
+          s.score += s.combo >= 2 ? 2 : 1;
           setScore(s.score);
+          setCombo(s.combo);
         }
       }
     };
@@ -182,7 +204,11 @@ export default function FruitNinja() {
     <div className="flex flex-col items-center gap-4">
       <div className="flex items-center justify-between w-full px-2">
         <span className="font-display text-violet-300 text-lg">🍉 Fruit Ninja</span>
-        <span className="font-mono text-violet-200 text-sm">Score: {score} | ♥ {lives}</span>
+        <div className="flex gap-3 text-sm font-mono">
+          {combo >= 2 && <span className="text-amber-400">🔥 x{combo}</span>}
+          <span className="text-violet-200">Score: {score}</span>
+          <span className="text-red-400">♥ {lives}</span>
+        </div>
       </div>
       <canvas
         ref={canvasRef}

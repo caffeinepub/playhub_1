@@ -175,6 +175,7 @@ export default function CrosswordGame() {
   const [selectedClue, setSelectedClue] = useState<ClueEntry | null>(CLUES[0]);
   const [focusedCell, setFocusedCell] = useState<[number, number] | null>([0, 0]);
   const [won, setWon] = useState(false);
+  const [hintsLeft, setHintsLeft] = useState(3);
   const inputRefs = useRef<Map<string, HTMLInputElement>>(new Map());
 
   const clueNumberGrid = buildClueNumberGrid();
@@ -243,8 +244,29 @@ export default function CrosswordGame() {
   const restart = () => {
     setUserGrid(SOLUTION.map(row => row.map(cell => (cell === null ? null : ""))));
     setWon(false);
+    setHintsLeft(3);
     setSelectedClue(CLUES[0]);
     setFocusedCell([0, 0]);
+  };
+
+  const useHint = () => {
+    if (hintsLeft <= 0) return;
+    // Find first empty cell that is part of a clue
+    for (let r = 0; r < 5; r++) {
+      for (let c = 0; c < 5; c++) {
+        const expected = SOLUTION[r][c];
+        if (expected === null) continue;
+        if (userGrid[r][c] !== expected) {
+          setUserGrid(prev => {
+            const next = prev.map(row => [...row]);
+            next[r][c] = expected;
+            return next;
+          });
+          setHintsLeft(h => h - 1);
+          return;
+        }
+      }
+    }
   };
 
   const CELL_SIZE = 52;
@@ -370,13 +392,27 @@ export default function CrosswordGame() {
           </div>
 
           {!won && (
-            <button
-              type="button"
-              onClick={restart}
-              className="mt-4 w-full text-xs text-muted-foreground hover:text-foreground border border-border/40 rounded-lg py-1.5 transition-colors"
-            >
-              Clear / Reset
-            </button>
+            <div className="mt-4 space-y-2">
+              <button
+                type="button"
+                onClick={useHint}
+                disabled={hintsLeft <= 0}
+                className={`w-full text-xs border rounded-lg py-1.5 transition-colors ${
+                  hintsLeft > 0
+                    ? "text-amber-400 hover:text-amber-300 border-amber-500/40 hover:border-amber-400"
+                    : "text-muted-foreground/40 border-border/20 cursor-not-allowed"
+                }`}
+              >
+                💡 Reveal Letter ({hintsLeft} left)
+              </button>
+              <button
+                type="button"
+                onClick={restart}
+                className="w-full text-xs text-muted-foreground hover:text-foreground border border-border/40 rounded-lg py-1.5 transition-colors"
+              >
+                Clear / Reset
+              </button>
+            </div>
           )}
         </div>
       </div>

@@ -142,6 +142,17 @@ export default function FlappyBird() {
     ctx.fill();
 
     ctx.restore();
+
+    // Score display during play
+    if (scoreRef.current > 0 || pipesRef.current.length > 0) {
+      ctx.font = "bold 32px Oxanium, monospace";
+      ctx.textAlign = "center";
+      ctx.fillStyle = "rgba(255,255,255,0.9)";
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = "rgba(0,0,0,0.8)";
+      ctx.fillText(String(scoreRef.current), W / 2, 52);
+      ctx.shadowBlur = 0;
+    }
   }, []);
 
   const gameLoop = useCallback(() => {

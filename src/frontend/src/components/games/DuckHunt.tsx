@@ -158,7 +158,13 @@ export default function DuckHunt() {
     <div className="flex flex-col items-center gap-4">
       <div className="flex items-center justify-between w-full px-2">
         <span className="font-display text-cyan-300 text-lg">🦆 Duck Hunt</span>
-        <span className="font-mono text-cyan-200 text-sm">Round {round}/{TOTAL_ROUNDS} | Hits: {roundHits} | Score: {score}</span>
+        <div className="flex gap-2 items-center text-sm font-mono">
+          <span className={`px-2 py-0.5 rounded-full font-bold ${
+            round === TOTAL_ROUNDS ? "bg-amber-500/20 text-amber-400 border border-amber-500/40" : "bg-cyan-500/10 text-cyan-300 border border-cyan-500/30"
+          }`}>Round {round}/{TOTAL_ROUNDS}</span>
+          <span className="text-zinc-400">Hits: {roundHits}/10</span>
+          <span className="text-cyan-200">Score: {score}</span>
+        </div>
       </div>
       <canvas
         ref={canvasRef}

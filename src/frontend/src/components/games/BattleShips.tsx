@@ -182,11 +182,21 @@ export default function BattleShips() {
 
       <div className="flex gap-6 flex-wrap justify-center">
         <div>
-          <p className="text-center text-sm font-display text-violet-300 mb-1">Your Fleet</p>
+          <div className="flex items-center justify-between mb-1">
+            <p className="text-sm font-display text-violet-300">Your Fleet</p>
+            <span className="text-xs text-violet-400 font-mono">
+              Ships: {SHIP_LENGTHS.reduce((a, b) => a + b, 0) - playerGrid.flat().filter(v => v === "hit").length}/{SHIP_LENGTHS.reduce((a, b) => a + b, 0)}
+            </span>
+          </div>
           {renderGrid(playerGrid, false, true)}
         </div>
         <div>
-          <p className="text-center text-sm font-display text-cyan-300 mb-1">Enemy Waters</p>
+          <div className="flex items-center justify-between mb-1">
+            <p className="text-sm font-display text-cyan-300">Enemy Waters</p>
+            <span className="text-xs text-cyan-400 font-mono">
+              Ships: {SHIP_LENGTHS.reduce((a, b) => a + b, 0) - aiGrid.flat().filter(v => v === "hit").length}/{SHIP_LENGTHS.reduce((a, b) => a + b, 0)}
+            </span>
+          </div>
           {renderGrid(aiGrid, true, phase === "done")}
         </div>
       </div>

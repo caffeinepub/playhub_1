@@ -303,6 +303,33 @@ export default function TetrisGame() {
     if (isValid(boardRef.current, p, 0, 0, rotated)) { pieceRef.current = { ...p, shape: rotated }; draw(); }
   };
 
+  // Draw next piece preview onto a small canvas
+  const nextCanvasRef = useRef<HTMLCanvasElement>(null);
+  const PREVIEW_SIZE = 80;
+
+  useEffect(() => {
+    const nc = nextCanvasRef.current;
+    if (!nc) return;
+    const ctx = nc.getContext("2d");
+    if (!ctx) return;
+    ctx.fillStyle = "oklch(0.10 0.015 270)";
+    ctx.fillRect(0, 0, PREVIEW_SIZE, PREVIEW_SIZE);
+    const piece = nextPieceRef.current;
+    const s = piece.shape;
+    const cellP = 16;
+    const offX = (PREVIEW_SIZE - s[0].length * cellP) / 2;
+    const offY = (PREVIEW_SIZE - s.length * cellP) / 2;
+    s.forEach((row, r) => {
+      row.forEach((val, c) => {
+        if (!val) return;
+        ctx.fillStyle = piece.color;
+        ctx.fillRect(offX + c * cellP + 1, offY + r * cellP + 1, cellP - 2, cellP - 2);
+        ctx.fillStyle = "oklch(1 0 0 / 0.25)";
+        ctx.fillRect(offX + c * cellP + 1, offY + r * cellP + 1, cellP - 2, 3);
+      });
+    });
+  });
+
   return (
     <div className="flex flex-col items-center gap-4">
       <div className="flex gap-4 text-center">
@@ -320,26 +347,42 @@ export default function TetrisGame() {
         </div>
       </div>
 
-      <div className="game-canvas-wrap" style={{ width: W, height: H }}>
-        <canvas ref={canvasRef} width={W} height={H} className="block rounded-lg" style={{ imageRendering: "pixelated" }} />
-        {gameState !== "playing" && (
-          <div className="game-overlay">
-            {gameState === "gameover" && (
-              <div className="text-center">
-                <p className="font-display text-3xl font-bold text-destructive mb-1">GAME OVER</p>
-                <p className="text-muted-foreground text-sm mb-4">Score: {displayScore}</p>
-              </div>
-            )}
-            {gameState === "idle" && (
-              <div className="text-center mb-4">
-                <p className="font-display text-sm text-muted-foreground">← → Move · ↑ Rotate · ↓ Drop · Space Hard Drop</p>
-              </div>
-            )}
-            <button type="button" onClick={startGame} className="btn-gradient px-6 py-2.5 rounded-xl text-white font-display font-semibold tracking-wide">
-              {gameState === "gameover" ? "Play Again" : "Start Tetris"}
-            </button>
+      <div className="flex gap-4 items-start">
+        <div className="game-canvas-wrap" style={{ width: W, height: H }}>
+          <canvas ref={canvasRef} width={W} height={H} className="block rounded-lg" style={{ imageRendering: "pixelated" }} />
+          {gameState !== "playing" && (
+            <div className="game-overlay">
+              {gameState === "gameover" && (
+                <div className="text-center">
+                  <p className="font-display text-3xl font-bold text-destructive mb-1">GAME OVER</p>
+                  <p className="text-muted-foreground text-sm mb-4">Score: {displayScore}</p>
+                </div>
+              )}
+              {gameState === "idle" && (
+                <div className="text-center mb-4">
+                  <p className="font-display text-sm text-muted-foreground">← → Move · ↑ Rotate · ↓ Drop · Space Hard Drop</p>
+                </div>
+              )}
+              <button type="button" onClick={startGame} className="btn-gradient px-6 py-2.5 rounded-xl text-white font-display font-semibold tracking-wide">
+                {gameState === "gameover" ? "Play Again" : "Start Tetris"}
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Next piece panel */}
+        <div className="flex flex-col items-center gap-1 mt-2">
+          <div className="score-chip">
+            <span className="score-label">Next</span>
           </div>
-        )}
+          <canvas
+            ref={nextCanvasRef}
+            width={PREVIEW_SIZE}
+            height={PREVIEW_SIZE}
+            className="rounded-lg"
+            style={{ imageRendering: "pixelated", border: "1px solid oklch(0.62 0.22 290 / 0.3)" }}
+          />
+        </div>
       </div>
 
       {/* Mobile controls */}

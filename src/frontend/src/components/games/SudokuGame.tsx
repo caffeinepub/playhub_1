@@ -1,4 +1,5 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
+import { toast } from "sonner";
 
 type Board = (number | null)[][];
 type Fixed = boolean[][];
@@ -61,12 +62,16 @@ function isSolved(board: Board): boolean {
   return board.every((row, r) => row.every((val, c) => val === SOLUTION[r][c]));
 }
 
+const MAX_HINTS = 3;
+
 export default function SudokuGame() {
   const [board, setBoard] = useState<Board>(puzzleToBoard);
   const [fixed] = useState<Fixed>(puzzleToFixed);
   const [selected, setSelected] = useState<[number, number] | null>(null);
   const [won, setWon] = useState(false);
   const [validated, setValidated] = useState(false);
+  const [hintsLeft, setHintsLeft] = useState(MAX_HINTS);
+  const hintsRef = useRef(MAX_HINTS);
 
   const handleCellClick = useCallback((r: number, c: number) => {
     if (won) return;
@@ -106,7 +111,31 @@ export default function SudokuGame() {
     setSelected(null);
     setWon(false);
     setValidated(false);
+    setHintsLeft(MAX_HINTS);
+    hintsRef.current = MAX_HINTS;
   }, []);
+
+  const useHint = useCallback(() => {
+    if (hintsRef.current <= 0) { toast.error("No hints remaining!"); return; }
+    setBoard(prev => {
+      // Find all empty non-fixed cells
+      const emptyCells: [number, number][] = [];
+      for (let r = 0; r < 9; r++) {
+        for (let c = 0; c < 9; c++) {
+          if (!fixed[r][c] && prev[r][c] === null) emptyCells.push([r, c]);
+        }
+      }
+      if (emptyCells.length === 0) return prev;
+      const [r, c] = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+      const next = prev.map(row => [...row]);
+      next[r][c] = SOLUTION[r][c];
+      hintsRef.current--;
+      setHintsLeft(hintsRef.current);
+      toast.success(`Hint used! ${hintsRef.current} remaining.`);
+      if (isSolved(next)) setWon(true);
+      return next;
+    });
+  }, [fixed]);
 
   const validate = useCallback(() => {
     setValidated(true);
@@ -147,7 +176,12 @@ export default function SudokuGame() {
           <span className="score-label">Progress</span>
           <span className="score-value">{Math.max(0, progress)}%</span>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
+          <button type="button" onClick={useHint}
+            disabled={hintsLeft <= 0}
+            className="px-3 py-1.5 rounded-lg text-xs font-display tracking-wide border border-yellow-400/30 text-yellow-300 hover:bg-yellow-400/10 transition-colors disabled:opacity-30">
+            💡 Hints: {hintsLeft}
+          </button>
           <button type="button" onClick={validate}
             className="px-3 py-1.5 rounded-lg text-xs font-display tracking-wide border border-cyan/30 text-cyan-300 hover:bg-cyan/10 transition-colors">
             Check

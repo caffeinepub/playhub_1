@@ -14,6 +14,14 @@ const CELL = 22;
 const CANVAS_SIZE = GRID * CELL;
 const INITIAL_SPEED = 140;
 
+// Google Snake color palette
+const BG_COLOR = "#4aad52";
+const GRID_LINE_COLOR = "rgba(255,255,255,0.10)";
+const SNAKE_HEAD_COLOR = "#3d9c45";
+const SNAKE_BODY_COLOR = "#2d7a34";
+const FOOD_COLOR = "#e74c3c";
+const STEM_COLOR = "#27ae60";
+
 function randomPoint(exclude: Point[]): Point {
   let pt: Point;
   do {
@@ -47,12 +55,12 @@ export default function SnakeGame() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Background
-    ctx.fillStyle = "oklch(0.10 0.015 270)";
+    // Board background — Google Snake bright green
+    ctx.fillStyle = BG_COLOR;
     ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
-    // Grid
-    ctx.strokeStyle = "oklch(0.16 0.020 270)";
+    // Grid lines — white at low opacity
+    ctx.strokeStyle = GRID_LINE_COLOR;
     ctx.lineWidth = 0.5;
     for (let i = 0; i <= GRID; i++) {
       ctx.beginPath();
@@ -65,43 +73,73 @@ export default function SnakeGame() {
       ctx.stroke();
     }
 
-    // Food
+    // Food — red apple circle with green stem
     const food = foodRef.current;
     const fx = food.x * CELL + CELL / 2;
     const fy = food.y * CELL + CELL / 2;
-    const gradient = ctx.createRadialGradient(fx, fy, 0, fx, fy, CELL * 0.5);
-    gradient.addColorStop(0, "oklch(0.80 0.22 25)");
-    gradient.addColorStop(1, "oklch(0.60 0.22 25 / 0.4)");
-    ctx.fillStyle = gradient;
+    const appleR = CELL * 0.38;
+
+    // Stem
+    ctx.strokeStyle = STEM_COLOR;
+    ctx.lineWidth = 2;
+    ctx.lineCap = "round";
     ctx.beginPath();
-    ctx.arc(fx, fy, CELL * 0.38, 0, Math.PI * 2);
+    ctx.moveTo(fx, fy - appleR);
+    ctx.lineTo(fx + 2, fy - appleR - 4);
+    ctx.stroke();
+
+    // Apple body
+    ctx.fillStyle = FOOD_COLOR;
+    ctx.shadowBlur = 4;
+    ctx.shadowColor = "rgba(0,0,0,0.3)";
+    ctx.beginPath();
+    ctx.arc(fx, fy, appleR, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // Apple highlight
+    ctx.fillStyle = "rgba(255,255,255,0.25)";
+    ctx.beginPath();
+    ctx.arc(fx - appleR * 0.25, fy - appleR * 0.25, appleR * 0.3, 0, Math.PI * 2);
     ctx.fill();
 
-    // Snake
-    snakeRef.current.forEach((seg, idx) => {
+    // Snake segments
+    const snake = snakeRef.current;
+    snake.forEach((seg, idx) => {
       const isHead = idx === 0;
       const x = seg.x * CELL;
       const y = seg.y * CELL;
-      const pad = 1.5;
+      const pad = 1;
 
-      if (isHead) {
-        const headGrad = ctx.createLinearGradient(x, y, x + CELL, y + CELL);
-        headGrad.addColorStop(0, "oklch(0.72 0.22 290)");
-        headGrad.addColorStop(1, "oklch(0.72 0.19 195)");
-        ctx.fillStyle = headGrad;
-        ctx.shadowBlur = 12;
-        ctx.shadowColor = "oklch(0.62 0.22 290 / 0.8)";
-      } else {
-        const t = idx / snakeRef.current.length;
-        ctx.fillStyle = `oklch(${0.55 - t * 0.15} ${0.18 - t * 0.08} 290)`;
-        ctx.shadowBlur = 0;
-      }
-
+      ctx.fillStyle = isHead ? SNAKE_HEAD_COLOR : SNAKE_BODY_COLOR;
       const r = isHead ? 5 : 3;
       ctx.beginPath();
       ctx.roundRect(x + pad, y + pad, CELL - pad * 2, CELL - pad * 2, r);
       ctx.fill();
-      ctx.shadowBlur = 0;
+
+      // Subtle highlight on top-left for 3D feel
+      ctx.fillStyle = "rgba(255,255,255,0.12)";
+      ctx.beginPath();
+      ctx.roundRect(x + pad, y + pad, CELL - pad * 2, 3, [r, r, 0, 0]);
+      ctx.fill();
+
+      // Eyes on head
+      if (isHead) {
+        const dir = dirRef.current;
+        ctx.fillStyle = "#fff";
+        const eyeR = 2.5;
+        let e1x = x + CELL / 2, e1y = y + CELL / 2;
+        let e2x = x + CELL / 2, e2y = y + CELL / 2;
+        if (dir === "RIGHT") { e1x = x + CELL - 6; e1y = y + 5; e2x = x + CELL - 6; e2y = y + CELL - 5; }
+        else if (dir === "LEFT") { e1x = x + 6; e1y = y + 5; e2x = x + 6; e2y = y + CELL - 5; }
+        else if (dir === "UP") { e1x = x + 5; e1y = y + 6; e2x = x + CELL - 5; e2y = y + 6; }
+        else { e1x = x + 5; e1y = y + CELL - 6; e2x = x + CELL - 5; e2y = y + CELL - 6; }
+        ctx.beginPath(); ctx.arc(e1x, e1y, eyeR, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(e2x, e2y, eyeR, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "#1a5a1a";
+        ctx.beginPath(); ctx.arc(e1x, e1y, 1.2, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(e2x, e2y, 1.2, 0, Math.PI * 2); ctx.fill();
+      }
     });
   }, []);
 
@@ -235,33 +273,46 @@ export default function SnakeGame() {
       </div>
 
       {/* Canvas */}
-      <div className="game-canvas-wrap" style={{ width: CANVAS_SIZE, height: CANVAS_SIZE }}>
+      <div
+        className="relative rounded-lg overflow-hidden"
+        style={{ width: CANVAS_SIZE, height: CANVAS_SIZE, boxShadow: "0 4px 20px rgba(0,0,0,0.4)" }}
+      >
         <canvas
           ref={canvasRef}
           width={CANVAS_SIZE}
           height={CANVAS_SIZE}
-          className="block rounded-lg"
+          className="block"
           style={{ imageRendering: "pixelated" }}
         />
         {gameState !== "playing" && (
-          <div className="game-overlay">
+          <div
+            className="absolute inset-0 flex flex-col items-center justify-center gap-4"
+            style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(2px)" }}
+          >
             {gameState === "gameover" && (
               <div className="text-center">
-                <p className="font-display text-3xl font-700 text-destructive mb-1">GAME OVER</p>
-                <p className="text-muted-foreground text-sm mb-4">Score: {displayScore}</p>
+                <p className="text-white text-3xl font-bold mb-1" style={{ fontFamily: "Oxanium, sans-serif", textShadow: "0 2px 8px rgba(0,0,0,0.6)" }}>
+                  GAME OVER
+                </p>
+                <p className="text-white/80 text-sm mb-4">Score: {displayScore}</p>
               </div>
             )}
             {gameState === "idle" && (
-              <div className="text-center mb-4">
-                <p className="font-display text-lg text-muted-foreground">Arrow keys or WASD</p>
+              <div className="text-center mb-1">
+                <p className="text-white/80 text-sm">Arrow keys or WASD to move</p>
               </div>
             )}
             <button
               type="button"
               onClick={startGame}
-              className="btn-gradient px-6 py-2.5 rounded-xl text-white font-display font-600 tracking-wide"
+              className="px-8 py-2.5 rounded-full text-white font-bold text-sm tracking-wide transition-all hover:scale-105 active:scale-95"
+              style={{
+                background: "#4aad52",
+                boxShadow: "0 3px 12px rgba(0,0,0,0.4)",
+                fontFamily: "Oxanium, sans-serif",
+              }}
             >
-              {gameState === "gameover" ? "Play Again" : "Start Game"}
+              {gameState === "gameover" ? "Play Again" : "Start"}
             </button>
           </div>
         )}
@@ -282,7 +333,8 @@ export default function SnakeGame() {
               key={dir}
               type="button"
               onClick={() => handleDirBtn(dir)}
-              className={`${pos[dir]} w-12 h-12 rounded-xl bg-surface-2 border border-violet/20 flex items-center justify-center text-xl text-violet-300 active:bg-violet/20`}
+              className={`${pos[dir]} w-12 h-12 rounded-xl flex items-center justify-center text-xl text-white font-bold active:opacity-70`}
+              style={{ background: "#4aad52", boxShadow: "0 2px 6px rgba(0,0,0,0.3)" }}
             >
               {labels[dir]}
             </button>

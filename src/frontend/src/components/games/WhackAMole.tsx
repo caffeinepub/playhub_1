@@ -21,6 +21,8 @@ export default function WhackAMole() {
   const moleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const scoreRef = useRef(0);
+  const [combo, setCombo] = useState(0);
+  const comboRef = useRef(0);
 
   const clearTimers = useCallback(() => {
     if (moleTimerRef.current) clearTimeout(moleTimerRef.current);
@@ -33,7 +35,11 @@ export default function WhackAMole() {
     const duration = 600 + Math.random() * 300;
     moleTimerRef.current = setTimeout(() => {
       setActiveMole(prev => {
-        if (prev === hole) setMissedHole(hole);
+        if (prev === hole) {
+          setMissedHole(hole);
+          comboRef.current = 0;
+          setCombo(0);
+        }
         return null;
       });
       setTimeout(() => setMissedHole(null), 250);
@@ -44,7 +50,9 @@ export default function WhackAMole() {
   const startGame = useCallback(() => {
     clearTimers();
     scoreRef.current = 0;
+    comboRef.current = 0;
     setScore(0);
+    setCombo(0);
     setTimeLeft(GAME_DURATION);
     setActiveMole(null);
     setWhackedHole(null);
@@ -75,7 +83,11 @@ export default function WhackAMole() {
     if (gameState !== "playing" || activeMole !== hole) return;
     if (moleTimerRef.current) clearTimeout(moleTimerRef.current);
     setActiveMole(null);
-    scoreRef.current += 1;
+    comboRef.current += 1;
+    setCombo(comboRef.current);
+    // Combo multiplier: 3+ consecutive hits doubles score
+    const points = comboRef.current >= 3 ? 2 : 1;
+    scoreRef.current += points;
     setScore(scoreRef.current);
     setWhackedHole(hole);
     setTimeout(() => {
@@ -92,10 +104,16 @@ export default function WhackAMole() {
   return (
     <div className="flex flex-col items-center gap-5">
       {/* Stats */}
-      <div className="flex gap-4 text-center w-full max-w-xs justify-between">
+      <div className="flex gap-3 text-center w-full max-w-xs justify-between">
         <div className="score-chip flex-1">
           <span className="score-label">Score</span>
           <span className="score-value">{score}</span>
+        </div>
+        <div className="score-chip flex-1">
+          <span className="score-label">Combo</span>
+          <span className="score-value" style={{ color: combo >= 3 ? "oklch(0.80 0.20 55)" : undefined }}>
+            {combo >= 3 ? `x2 🔥` : combo}
+          </span>
         </div>
         <div className="score-chip flex-1">
           <span className="score-label">Time</span>

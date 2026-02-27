@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { toast } from "sonner";
 
 const WORDS = [
   "FLAME","STONE","BRAVE","CRANE","SHIFT","PLUMB","FROST","GRACE","BLAZE","TROVE",
@@ -145,6 +146,19 @@ export default function WordGuess() {
     return () => window.removeEventListener("keydown", handler);
   }, [handleKey]);
 
+  const shareResult = useCallback(() => {
+    const emojiMap: Record<string, string> = { correct: "🟩", present: "🟨", absent: "⬛", empty: "⬛", tbd: "⬛" };
+    const grid = guesses.map(row =>
+      row.letters.map(l => emojiMap[l.state]).join("")
+    ).join("\n");
+    const text = `Word Guess ${phase === "won" ? guesses.length : "X"}/${MAX_GUESSES}\n\n${grid}`;
+    navigator.clipboard.writeText(text).then(() => {
+      toast.success("Copied to clipboard!");
+    }).catch(() => {
+      toast.error("Failed to copy");
+    });
+  }, [guesses, phase]);
+
   const restart = () => {
     setAnswer(pickWord());
     setGuesses([]);
@@ -159,26 +173,30 @@ export default function WordGuess() {
       <div className="flex flex-col gap-1.5">
         {displayGrid.map((row, ri) => {
           const isActive = ri === activeRowIdx && phase === "playing";
+          const rowKey = `guess-row-r${ri}`;
           return (
             <div
-              key={`guess-row-${ri}`}
+              key={rowKey}
               className={`flex gap-1.5 ${isActive && shake ? "animate-pulse" : ""}`}
             >
-              {row.letters.map((cell, ci) => (
-                <div
-                  key={`guess-cell-${ri}-${ci}`}
-                  className="w-12 h-12 flex items-center justify-center font-display text-xl font-bold rounded-lg transition-all duration-200 select-none"
-                  style={{
-                    background: STATE_COLORS[cell.state],
-                    border: `2px solid ${STATE_BORDERS[cell.state]}`,
-                    transform: cell.state !== "empty" && cell.state !== "tbd" && ri < guesses.length ? "rotateX(0deg)" : "none",
-                    color: cell.state === "empty" ? "oklch(0.40 0.02 270)" : "oklch(0.96 0.01 270)",
-                    boxShadow: cell.state === "correct" ? "0 0 10px oklch(0.45 0.17 150 / 0.5)" : "none",
-                  }}
-                >
-                  {cell.char}
-                </div>
-              ))}
+              {row.letters.map((cell, ci) => {
+                const cellKey = `guess-cell-r${ri}-c${ci}`;
+                return (
+                  <div
+                    key={cellKey}
+                    className="w-12 h-12 flex items-center justify-center font-display text-xl font-bold rounded-lg transition-all duration-200 select-none"
+                    style={{
+                      background: STATE_COLORS[cell.state],
+                      border: `2px solid ${STATE_BORDERS[cell.state]}`,
+                      transform: cell.state !== "empty" && cell.state !== "tbd" && ri < guesses.length ? "rotateX(0deg)" : "none",
+                      color: cell.state === "empty" ? "oklch(0.40 0.02 270)" : "oklch(0.96 0.01 270)",
+                      boxShadow: cell.state === "correct" ? "0 0 10px oklch(0.45 0.17 150 / 0.5)" : "none",
+                    }}
+                  >
+                    {cell.char}
+                  </div>
+                );
+              })}
             </div>
           );
         })}
@@ -200,8 +218,8 @@ export default function WordGuess() {
 
       {/* Keyboard */}
       <div className="flex flex-col gap-1.5 items-center">
-        {KEYBOARD_ROWS.map((row, ri) => (
-          <div key={`kb-row-${ri}`} className="flex gap-1">
+        {KEYBOARD_ROWS.map((row) => (
+          <div key={`kb-row-${row[0]}`} className="flex gap-1">
             {row.map(key => {
               const state = letterStates[key];
               const isWide = key === "ENTER" || key === "⌫";
@@ -229,9 +247,14 @@ export default function WordGuess() {
       </div>
 
       {phase !== "playing" && (
-        <button type="button" onClick={restart} className="btn-gradient px-6 py-2.5 rounded-xl text-white font-display font-semibold tracking-wide">
-          New Game
-        </button>
+        <div className="flex gap-3">
+          <button type="button" onClick={shareResult} className="px-4 py-2 rounded-xl border border-green-400/30 text-green-300 font-display text-sm hover:bg-green-400/10 transition-colors">
+            📤 Share
+          </button>
+          <button type="button" onClick={restart} className="btn-gradient px-6 py-2.5 rounded-xl text-white font-display font-semibold tracking-wide">
+            New Game
+          </button>
+        </div>
       )}
     </div>
   );

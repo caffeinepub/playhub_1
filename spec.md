@@ -1,48 +1,71 @@
 # PlayHub
 
 ## Current State
-PlayHub has 4 tabs: Videos, Games, AI Assistant, and AI Video Studio. The Games tab has 26 games already implemented as individual React components under `src/frontend/src/components/games/`.
-
-Existing games: Snake, Memory Match, Tetris, Breakout, 2048, Whack-A-Mole, Flappy Bird, Sudoku, Minesweeper, Pong, Connect Four, Space Invaders, Type Racer, Reaction Time, Color Matcher, Word Guess, Mini Crossword, Tower Defense, Bubble Shooter, Chess, Trivia Quiz, 15 Puzzle, Asteroids, Simon Says, Platformer Run, Math Blaster.
+PlayHub has 46 games in the arcade (GamesTab.tsx + individual game components), plus Videos, AI Assistant, and AI Video Studio tabs. All games are functional but have basic visuals and minimal polish.
 
 ## Requested Changes (Diff)
 
 ### Add
-20 new modern-day game components, each fully playable in-browser with no dependencies:
-1. **Geometry Dash** (id: geodash) - Tap/space to jump over spikes in a rhythm-runner. Arcade / Endless
-2. **Dino Run** (id: dinorun) - Offline dino-style obstacle runner. Jump cacti and birds. Endless
-3. **Wordle Blitz** (id: wordleblitz) - Speed Wordle: 3 words in 60 seconds, one-letter-per-second timer. Brain / Timed
-4. **Pixel Art Draw** (id: pixelart) - 16x16 grid pixel canvas with color palette, draw freely. Creative
-5. **Idle Clicker** (id: idleclicker) - Cookie-clicker style: click to earn, buy upgrades to automate. Idle
-6. **Maze Runner** (id: maze) - Navigate a procedurally generated maze with arrow keys, beat the clock. Puzzle
-7. **Among Us Impostor** (id: impostor) - Quick deduction mini-game: spot the impostor in a crew lineup from behavioral clues. Logic
-8. **Battle Ships** (id: battleships) - Classic Battleship vs AI on 10x10 grid. Strategy / 2-Player
-9. **Boggle** (id: boggle) - 4x4 letter grid, find words before the timer runs out. Word / Timed
-10. **Number Cruncher** (id: numbercruncher) - Merge identical number tiles (like 2048 but vertical columns). Puzzle
-11. **Stack Tower** (id: stacktower) - Tap to stack blocks; perfect alignment gives bonus. Arcade
-12. **Fruit Ninja** (id: fruitninja) - Slice fruits flying across the screen, avoid bombs. Reflex
-13. **Candy Crush Clone** (id: candycrush) - Match-3 gem swapping puzzle with move counter. Puzzle
-14. **Piano Tiles** (id: pianotiles) - Tap black tiles falling down, avoid white tiles. Reflex / Music
-15. **Checkers** (id: checkers) - Full draughts vs AI on 8x8 board. Strategy / Classic
-16. **Hangman** (id: hangman) - Guess the word letter by letter before the man is hanged. Word
-17. **Duck Hunt** (id: duckhunt) - Click ducks flying across the screen before they escape. 3 rounds. Reflex
-18. **Crossy Road** (id: crossyroad) - Hop across traffic lanes and river logs, go as far as you can. Endless
-19. **Ballz** (id: ballz) - Launch balls to break numbered bricks (like BB-style brick breaker). Arcade
-20. **Retro Racer** (id: retroracer) - Pseudo-3D top-down road racer, dodge oncoming cars. Speed / Arcade
+- Google-style Snake: bright green board (#35b027 background), bright cell-by-cell grid lines, rounded green snake segments with a slightly lighter head, red circular apple food, minimal clean look matching Google's Snake game
+- Each game gets at least one meaningful upgrade (see Implementation Plan below)
 
 ### Modify
-- `GamesTab.tsx`: import all 20 new game components, add their metadata to the `GAMES` array, extend the `GameId` union type, and add render cases in the active-game view. Update the subtitle count from "26 games" to "46 games".
+- SnakeGame.tsx: complete visual overhaul to match Google Snake (bright green board, red apple, clean green snake, white grid lines)
+- MemoryGame.tsx: add a timer countdown (60 seconds), larger emoji card set (12 pairs), difficulty selector (Easy/Hard)
+- TetrisGame.tsx: add next-piece preview panel, hold piece, soft-drop speed boost
+- BreakoutGame.tsx: add multiple ball speed levels, multi-row brick layout with varying colors/points, lives display
+- Game2048.tsx: add undo last move, animated tile merges, better color scheme per tile value
+- WhackAMole.tsx: add difficulty ramp (moles appear faster over time), combo multiplier
+- FlappyBird.tsx: add day/night cycle background, score multiplier at 10/20/30 pipes
+- SudokuGame.tsx: add hint button (up to 3 hints per game), error highlighting in red
+- MinesweeperGame.tsx: add difficulty presets (Easy 9x9/10 mines, Medium 16x16/40 mines), timer
+- PongGame.tsx: add AI difficulty selector (Easy/Hard), speed increase over time
+- ConnectFour.tsx: add win animation (flash winning 4 cells), AI opponent option
+- SpaceInvaders.tsx: add barrier shields, UFO bonus ship, level progression
+- TypeRacer.tsx: add WPM chart at end, more sentence variety
+- ReactionTime.tsx: add 5-round average mode, personal best tracking
+- ColorMatcher.tsx: add difficulty levels, speed ramp
+- WordGuess.tsx: add share result button (copy emoji grid to clipboard)
+- CrosswordGame.tsx: add reveal letter hint button
+- TowerDefense.tsx: add turret upgrade button, enemy health bars
+- BubbleShooter.tsx: add level progression, new bubble colors at higher levels
+- ChessGame.tsx: add move history sidebar, capture counts
+- TriviaQuiz.tsx: expand question bank to 30 questions, add category filter
+- FifteenPuzzle.tsx: add move counter, shuffle animation
+- AsteroidsGame.tsx: add shield power-up, score multiplier for streaks
+- SimonSays.tsx: add speed increase each round
+- PlatformerGame.tsx: add coin counter HUD, more obstacle variety
+- MathBlaster.tsx: add difficulty levels (add/subtract/multiply/divide), streak bonus
+- GeometryDash.tsx: add background parallax scrolling, obstacle variety
+- DinoRun.tsx: add score display, speed increase over time, pterodactyls at high scores
+- WordleBlitz.tsx: add word counter HUD, combo timer bonus
+- PixelArtDraw.tsx: add fill bucket tool, clear canvas button confirmation
+- IdleClicker.tsx: add prestige button at 1M cookies, offline earnings indicator
+- MazeRunner.tsx: add timer, best time tracker, maze size options
+- BattleShips.tsx: add hit/miss animation, remaining ships counter
+- BoggleGame.tsx: add word validity feedback (green flash on valid word), longer word bonus
+- NumberCruncher.tsx: add combo multiplier for consecutive merges
+- StackTower.tsx: add perfect landing bonus glow effect, height counter
+- FruitNinja.tsx: add power-up fruits (golden banana = 5 pts), combo counter
+- CandyCrushClone.tsx: add cascade animation delay, level goal display
+- PianoTiles.tsx: add tempo selector (slow/normal/fast), streak counter
+- CheckersGame.tsx: add king promotion animation glow
+- HangmanGame.tsx: add category selector (Animals, Countries, Movies, Tech)
+- DuckHunt.tsx: add speed difficulty ramp per round, miss counter
+- CrossyRoad.tsx: add score counter, river log obstacles
+- BallzGame.tsx: add ball multishot power-up brick
+- RetroRacer.tsx: add lap/distance counter, fuel gauge mechanic
+- ImpostorGame.tsx: add difficulty (more suspects, less obvious stats)
 
 ### Remove
-Nothing removed.
+- Nothing removed
 
 ## Implementation Plan
-1. Create 20 new game component files in `src/frontend/src/components/games/`.
-2. Each game must be self-contained (no external API calls), playable with keyboard/mouse, and handle its own score/state.
-3. Update `GamesTab.tsx` to register all 20 new games.
+1. Restyle SnakeGame.tsx completely: bright #4aad52 green board, white grid lines, rounded green snake, red apple (circle), clear Google-style minimal look
+2. Add incremental improvements to every other game component, focusing on the highest-impact changes per game
+3. Update GamesTab.tsx description strings to reflect new features
 
 ## UX Notes
-- Alternate violet/cyan color assignments to maintain visual rhythm.
-- Badge labels should match the game genre (see list above).
-- Use canvas-based rendering for action games (Geometry Dash, Dino Run, Fruit Ninja, Duck Hunt, Crossy Road, Piano Tiles, Retro Racer, Stack Tower).
-- Non-canvas games use standard React state (Wordle Blitz, Pixel Art, Idle Clicker, Boggle, Battleships, Candy Crush, Checkers, Hangman, Number Cruncher, Ballz, Among Us, Maze).
+- Google Snake look: solid bright green (#4aad52) board background, white subtle grid, snake is solid green segments (head slightly lighter, rounded), food is a red circle/apple, score shown above
+- All game improvements should feel like natural quality-of-life additions, not bloat
+- Keep mobile D-pad controls working for Snake

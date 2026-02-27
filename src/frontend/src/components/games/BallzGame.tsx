@@ -22,6 +22,7 @@ export default function BallzGame() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [gameState, setGameState] = useState<"idle" | "aiming" | "shooting" | "dead">("idle");
   const [score, setScore] = useState(0);
+  const [ballCount, setBallCount] = useState(5);
   const runningRef = useRef(false);
   const animIdRef = useRef(0);
   const gsRef = useRef({
@@ -120,6 +121,7 @@ export default function BallzGame() {
       s.score++;
       s.ballCount++;
       setScore(s.score);
+      setBallCount(s.ballCount);
 
       // Game over check
       if (s.bricks.some(b => b.row >= ROWS_VISIBLE)) {
@@ -161,6 +163,7 @@ export default function BallzGame() {
       launchX: W / 2, aimAngle: -Math.PI / 2, row: 0,
     };
     setScore(0);
+    setBallCount(5);
     setGameState("aiming");
     runningRef.current = true;
     const canvas = canvasRef.current;
@@ -214,7 +217,10 @@ export default function BallzGame() {
     <div className="flex flex-col items-center gap-4">
       <div className="flex items-center justify-between w-full px-2">
         <span className="font-display text-cyan-300 text-lg">🎱 Ballz</span>
-        <span className="font-mono text-cyan-200 text-sm">Score: {score}</span>
+        <div className="flex gap-3 text-sm font-mono">
+          <span className="text-violet-300">🎱 ×{ballCount}</span>
+          <span className="text-cyan-200">Score: {score}</span>
+        </div>
       </div>
       <canvas
         ref={canvasRef}

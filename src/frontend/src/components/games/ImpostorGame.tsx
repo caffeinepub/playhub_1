@@ -72,8 +72,13 @@ export default function ImpostorGame() {
       <div className="flex items-center justify-between w-full px-2">
         <span className="font-display text-cyan-300 text-lg">🔍 Impostor</span>
         {phase === "playing" && (
-          <div className="flex gap-4">
-            <span className="font-mono text-cyan-200 text-sm">Round {round}/10</span>
+          <div className="flex gap-4 items-center">
+            <div className="flex items-center gap-2">
+              <div className="w-20 h-1.5 bg-zinc-700 rounded-full overflow-hidden">
+                <div className="h-full bg-cyan-400 rounded-full transition-all" style={{ width: `${(round / 10) * 100}%` }} />
+              </div>
+              <span className="font-mono text-cyan-200 text-sm">Round {round}/10</span>
+            </div>
             <span className="font-mono text-green-300 text-sm">Score: {score}</span>
           </div>
         )}

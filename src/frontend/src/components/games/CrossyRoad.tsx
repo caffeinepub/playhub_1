@@ -23,6 +23,7 @@ export default function CrossyRoad() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [gameState, setGameState] = useState<"idle" | "playing" | "dead">("idle");
   const [score, setScore] = useState(0);
+  const [best, setBest] = useState(0);
   const runningRef = useRef(false);
   const animIdRef = useRef(0);
   const gsRef = useRef({
@@ -120,10 +121,12 @@ export default function CrossyRoad() {
     ctx.fillText("🐔", s.playerCol * CELL + CELL / 2, pScreenR * CELL + CELL / 2);
 
     // HUD
+    ctx.fillStyle = "rgba(0,0,0,0.45)";
+    ctx.fillRect(4, 4, 130, 30);
     ctx.fillStyle = "#fff";
-    ctx.font = "bold 16px monospace";
+    ctx.font = "bold 18px monospace";
     ctx.textAlign = "left";
-    ctx.fillText(`Score: ${s.score}`, 8, 22);
+    ctx.fillText(`🐔 ${s.score} hops`, 10, 24);
 
     animIdRef.current = requestAnimationFrame(() => runLoop(ctx));
   }, []);
@@ -177,6 +180,7 @@ export default function CrossyRoad() {
         s.score += s.bestRow - s.playerRow;
         s.bestRow = s.playerRow;
         setScore(s.score);
+        setBest(b => Math.max(b, s.score));
       }
     };
     window.addEventListener("keydown", onKey);
@@ -187,7 +191,10 @@ export default function CrossyRoad() {
     <div className="flex flex-col items-center gap-4">
       <div className="flex items-center justify-between w-full px-2">
         <span className="font-display text-violet-300 text-lg">🐔 Crossy Road</span>
-        <span className="font-mono text-violet-200 text-sm">Score: {score}</span>
+        <div className="flex gap-3 text-sm font-mono">
+          <span className="text-violet-200">{score} hops</span>
+          {best > 0 && <span className="text-amber-400">Best: {best}</span>}
+        </div>
       </div>
       <canvas
         ref={canvasRef}

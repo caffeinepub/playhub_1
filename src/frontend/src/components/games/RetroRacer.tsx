@@ -165,7 +165,10 @@ export default function RetroRacer() {
     <div className="flex flex-col items-center gap-4">
       <div className="flex items-center justify-between w-full px-2">
         <span className="font-display text-violet-300 text-lg">🏎️ Retro Racer</span>
-        <span className="font-mono text-violet-200 text-sm">Score: {score}</span>
+        <div className="flex gap-3 text-sm font-mono">
+          <span className="text-violet-200">📍 {score}m</span>
+          <span className="text-amber-400">🏁 {Math.floor(60 + score / 20)} km/h</span>
+        </div>
       </div>
       <canvas
         ref={canvasRef}

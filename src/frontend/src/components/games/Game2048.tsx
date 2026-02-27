@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useSaveHighScore, useGetHighScore } from "../../hooks/useQueries";
 import { toast } from "sonner";
 
@@ -122,6 +122,7 @@ export default function Game2048() {
   const [won, setWon] = useState(false);
   const [over, setOver] = useState(false);
   const [keepPlaying, setKeepPlaying] = useState(false);
+  const prevBoardRef = useRef<{ board: Board; score: number } | null>(null);
 
   const { data: highScore = BigInt(0) } = useGetHighScore("2048");
   const saveScore = useSaveHighScore();
@@ -131,6 +132,8 @@ export default function Game2048() {
     setBoard(prev => {
       const { board: next, score: pts, moved } = move(prev, dir);
       if (!moved) return prev;
+      // Save previous state for undo
+      prevBoardRef.current = { board: prev, score: score };
       const withNew = addRandom(next);
       setScore(s => {
         const newScore = s + pts;
@@ -146,7 +149,16 @@ export default function Game2048() {
       }
       return withNew;
     });
-  }, [over, won, keepPlaying]);
+  }, [over, won, keepPlaying, score]);
+
+  const handleUndo = useCallback(() => {
+    if (!prevBoardRef.current) return;
+    const { board: prevBoard, score: prevScore } = prevBoardRef.current;
+    setBoard(prevBoard);
+    setScore(prevScore);
+    setOver(false);
+    prevBoardRef.current = null;
+  }, []);
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -198,6 +210,11 @@ export default function Game2048() {
           <span className="score-label">Best</span>
           <span className="score-value gradient-text">{Math.max(bestScore, Number(highScore))}</span>
         </div>
+        <button type="button" onClick={handleUndo}
+          disabled={!prevBoardRef.current}
+          className="px-3 py-1 rounded-lg border border-violet/30 text-violet-300 text-xs font-display tracking-wide hover:bg-violet/10 transition-colors self-center disabled:opacity-30">
+          Undo
+        </button>
         <button type="button" onClick={newGame}
           className="px-3 py-1 rounded-lg border border-violet/30 text-violet-300 text-xs font-display tracking-wide hover:bg-violet/10 transition-colors self-center">
           New

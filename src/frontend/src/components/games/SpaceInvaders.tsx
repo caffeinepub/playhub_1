@@ -56,6 +56,8 @@ export default function SpaceInvaders() {
   const [phase, setPhase] = useState<Phase>("idle");
   const [score, setScore] = useState(0);
   const [lives, setLives] = useState(3);
+  const [wave, setWave] = useState(1);
+  const waveRef = useRef(1);
 
   const draw = useCallback((ts: number = 0) => {
     const canvas = canvasRef.current;
@@ -214,10 +216,14 @@ export default function SpaceInvaders() {
       setPhase("gameover");
     }
 
-    // Check win
+    // Check win / next wave
     if (aliensRef.current.every(a => !a.alive)) {
-      phaseRef.current = "win";
-      setPhase("win");
+      waveRef.current++;
+      setWave(waveRef.current);
+      aliensRef.current = buildAliens();
+      bulletsRef.current = [];
+      alienBulletsRef.current = [];
+      moveIntervalRef.current = Math.max(300, MOVE_INTERVAL_START - (waveRef.current - 1) * 100);
     }
 
     draw(ts);
@@ -234,6 +240,7 @@ export default function SpaceInvaders() {
     phaseRef.current = "playing";
     scoreRef.current = 0;
     livesRef.current = 3;
+    waveRef.current = 1;
     alienDirRef.current = 1;
     lastMoveRef.current = 0;
     lastShootRef.current = 0;
@@ -242,6 +249,7 @@ export default function SpaceInvaders() {
     setPhase("playing");
     setScore(0);
     setLives(3);
+    setWave(1);
     rafRef.current = requestAnimationFrame(tick);
   }, [tick]);
 
@@ -271,6 +279,10 @@ export default function SpaceInvaders() {
         <div className="score-chip">
           <span className="score-label">Lives</span>
           <span className="score-value">{Array.from({ length: lives }, () => "♥").join(" ")}</span>
+        </div>
+        <div className="score-chip">
+          <span className="score-label">Wave</span>
+          <span className="score-value gradient-text">{wave}</span>
         </div>
       </div>
 
